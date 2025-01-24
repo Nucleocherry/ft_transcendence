@@ -3,11 +3,23 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 from django.contrib import messages  # Importer messages
 from .models import Utilisateur
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
 
 @login_required
 def home(request):
-    return render(request, 'web/index.html', {'pseudo': request.user.username})
+    utilisateur = request.user  # L'utilisateur connecté
+    amis = utilisateur.friends_list.all()  # Récupère tous les amis de l'utilisateur connecté
+
+    return render(request, 'web/index.html', {
+        'nickname': utilisateur.username,  # Passe le pseudo de l'utilisateur
+        'amis': amis  # Passe la liste des amis au template
+    })
+
+
 
 def login(request):
     return render(request, 'web/login.html')
@@ -15,47 +27,71 @@ def login(request):
 def inscription(request):
     if request.method == 'POST':
         email_given = request.POST.get('email')
-        nickname_given = request.POST.get('nickname')
+        nickname_given = request.POST.get('nickname')  # Ici, nickname_given correspond à 'username'
         password_given = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
-        # Vérifier si les mots de passe correspondent
+        # Vérifier si les mots de passes correspondent
         if password_given != confirm_password:
-            return HttpResponse('Mot de passes differents')
+            return HttpResponse('Les mots de passe sont différents.')
+
+        # Crypter le mot de passe
+        hashed_password = make_password(password_given)
 
         # Créer un nouvel utilisateur et l'enregistrer dans la base de données
-        utilisateur = Utilisateur(email=email_given, pseudo=nickname_given, password=password_given)
+        utilisateur = Utilisateur(email=email_given, username=nickname_given, password=hashed_password, victory=0)
         utilisateur.save()
 
         # Ajouter un message de succès après l'inscription
         messages.success(request, 'Inscription réussie ! Vous pouvez vous connecter.')
-        
+        auth_login(request, utilisateur)
+
         return render(request, 'web/index.html')
+
+
+
 
 def connexion(request):
     if request.method == 'POST':
         email_given = request.POST.get('email')
         password_given = request.POST.get('password')
 
+        # Trouver l'utilisateur par email
         utilisateur = Utilisateur.objects.filter(email=email_given).first()
 
         if not utilisateur:
             return HttpResponse('Utilisateur non trouvé.')
-        if password_given != utilisateur.password:
-            return HttpResponse('Mot de passe incorrect')
+
+        if not check_password(password_given, utilisateur.password):
+            return HttpResponse('Mot de passe incorrect.')
+
+        # Connexion de l'utilisateur
+        auth_login(request, utilisateur)
 
         return render(request, 'web/index.html')
 
 
 
+
 def search_users(request):
-    print("sffefef", flush=True)
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '')  # Récupère le paramètre 'q' de la requête
     if query:
-        users = Utilisateur.objects.filter(pseudo__icontains=query)
-        results = [{"pseudo": user.pseudo} for user in users]
+        users = Utilisateur.objects.filter(username__icontains=query)  # Filtrer les utilisateurs
     else:
-        results = []
-    return JsonResponse({"results": results})
+        users = Utilisateur.objects.all()  # Si aucune recherche, récupère tous les utilisateurs
+
+    user_data = [{"username": user.username} for user in users]
+    return JsonResponse({"users": user_data})
+
+
+@login_required
+def add_friend(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        user_to_add = get_object_or_404(Utilisateur, username=username)
+        current_user = request.user
+        current_user.amis.add(user_to_add)
+        return JsonResponse({"success": True, "message": f"{username} ajouté en ami!"})
+    return JsonResponse({"success": False, "message": "Méthode non autorisée."})
 
 

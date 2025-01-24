@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-x-d5@%tm97kyp(a#snyivs3m*p6##0d!#pk+h0)&lhqyyrsii&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -136,6 +136,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Si l'utilisateur n'est pas connecté, il ne doit pas être redirigé vers la page de login
-LOGIN_URL = None  # Cela évite la redirection vers la page de connexion
+LOGIN_URL = 'login/'  # Ou l'URL de ta vue de connexion
+
 

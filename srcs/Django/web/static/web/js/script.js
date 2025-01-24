@@ -114,33 +114,41 @@ function scrollToSettingsMenu(activate) {
 
 
 
-// pour la barre de recherche friend
-
-function searchFriends() {
-    const query = document.getElementById('searchBar').value;
-
-    if (query.trim() === '') {
-        document.getElementById('friendResults').innerHTML = ''; // Réinitialiser si vide
-        return;
-    }
-
-    fetch(`/search_users?q=${encodeURIComponent(query)}`)
-        .then(response => response.json())
+// Fonction pour récupérer la liste des utilisateurs
+// Fonction pour récupérer la liste des utilisateurs
+// Fonction pour récupérer la liste des utilisateurs
+function fetchUsers(query = '') {
+    fetch(`/search_users/?q=${query}`)
+        .then(response => response.json())  
         .then(data => {
-            const results = data.results;
-            const resultsContainer = document.getElementById('friendResults');
-            resultsContainer.innerHTML = ''; // Réinitialiser les résultats
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = '';
 
-            // Créer une "case" pour chaque utilisateur
-            results.forEach(user => {
-                const div = document.createElement('div');
-                div.className = 'friendCard'; // Ajouter la classe CSS
-                div.textContent = user.pseudo; // Mettre seulement le pseudo
-                resultsContainer.appendChild(div);
-            });
+            if (data.users && data.users.length > 0) {
+                data.users.forEach(user => {
+                    const button = document.createElement("button");
+                    button.textContent = user.username;
+                    button.onclick = function() {
+						return;  // Appelle la fonction pour ajouter un ami
+                    };
+                    resultsContainer.appendChild(button);
+                });
+            } else {
+                const li = document.createElement("li");
+                li.textContent = "Aucun utilisateur trouvé";
+                resultsContainer.appendChild(li);
+            }
         })
         .catch(error => {
-            console.error('Erreur lors de la recherche:', error);
+            console.error('Error fetching users:', error);
         });
 }
 
+
+
+
+// Fonction pour lancer la recherche à chaque saisie dans la barre de recherche
+function searchFriends() {
+    const query = document.getElementById("searchBar").value;  // Récupère la valeur de la barre de recherche
+    fetchUsers(query);  // Appelle fetchUsers avec la valeur de recherche
+}

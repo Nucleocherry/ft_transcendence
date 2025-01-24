@@ -1,10 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import Utilisateur
 
-# Enregistrer le modèle User dans l'administration
-@admin.register(Utilisateur)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('pseudo', 'email', 'online_status', 'victories', 'elo')  # Afficher ces champs dans la liste
-    search_fields = ('pseudo', 'email')  # Champs par lesquels on peut rechercher dans l'admin
-    list_filter = ('online_status',)  # Ajouter un filtre pour le statut en ligne
-    ordering = ('elo',)  # Trier par le score ELO par défaut
+class UtilisateurAdmin(UserAdmin):
+    model = Utilisateur
+    list_display = ['username', 'first_name', 'last_name', 'email', 'victory']
+    search_fields = ['username', 'email']
+    list_filter = ['is_staff', 'is_superuser']
+
+admin.site.register(Utilisateur, UtilisateurAdmin)

@@ -1,15 +1,39 @@
-# Chemin vers le fichier docker-compose
-COMPOSE_PATH = srcs/docker-compose.yml
+# Variables
+DOCKER_COMPOSE = docker-compose -f srcs/docker-compose.yml
+PROJECT_NAME = my_project
 
-# Commandes principales
+.PHONY: all up down build logs migrate shell
+
+all: build up
+
+build:
+	@echo "Building Docker images..."
+	$(DOCKER_COMPOSE) build
+
 prune:
+	@echo "Removing Docker images..."
 	docker system prune -af
 
 up:
-	docker-compose -f $(COMPOSE_PATH) up --build -d
+	@echo "Starting Docker containers..."
+	$(DOCKER_COMPOSE) up -d
 
 down:
-	docker-compose -f $(COMPOSE_PATH) down
+	@echo "Stopping Docker containers..."
+	$(DOCKER_COMPOSE) down
 
-# Alias pour lancer le projet avec `make`
-dev: up
+logs:
+	@echo "Showing logs..."
+	$(DOCKER_COMPOSE) logs -f
+
+migrate:
+	@echo "Applying Django migrations..."
+	$(DOCKER_COMPOSE) exec web python manage.py migrate
+
+makemigrations:
+	@echo "Creating Django migrations..."
+	$(DOCKER_COMPOSE) exec web python manage.py makemigrations
+
+shell:
+	@echo "Opening Django shell..."
+	$(DOCKER_COMPOSE) exec web python manage.py shell

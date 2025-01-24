@@ -58,27 +58,42 @@
     </div>
 
 
-	<!-- HERE IS THE FRIENDS MENU -->
-	<div id="friendMenu" class="friendMenu">
-		<h1>Friends</h1>
-		<input 
-			type="text" 
-			id="searchBar" 
-			placeholder="Rechercher un ami..." 
-			oninput="searchFriends()" 
-		/>
-		<div id="friendResults" class="friendResults"></div> <!-- Résultats affichés ici -->
-	</div>
+<!-- HERE IS THE FRIEND MENU -->
+<div id="friendMenu" class="friendMenu">
+    <h1>Friends</h1>
+    <input 
+        type="text" 
+        id="searchBar" 
+        placeholder="Rechercher un ami..." 
+        oninput="searchFriends()" 
+    />
+    <ul id="results"></ul>  <!-- Affichage des résultats de recherche -->
+
+
+    <div id="friendResults" class="friendResults">
+        {% if amis %}
+            <ul>
+                {% for ami in amis %}
+                    <li>{{ ami.username }}</li>  <!-- Affiche le pseudo de chaque ami -->
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Vous n'avez pas d'amis.</p>  <!-- Message quand il n'y a pas d'amis -->
+        {% endif %}
+    </div>
+</div>
+
 	
-	
 
 
 
-	<!-- HERE IS THE SETTINGS MENU -->
+<!-- HERE IS THE SETTINGS MENU -->
 	<div id="settingsMenu" class="settingsMenu">
 		<h1>Settings</h1>
+		<p>Votre Username : {{ request.user.username }}</p>
 		<button>AMI 1</button>
-    </div>
+	</div>
+
 	
 
 
