@@ -1,0 +1,54 @@
+
+
+services:
+  db:
+    build:
+      context: ./postgres  # Ce dossier contient le Dockerfile de PostgreSQL
+    container_name: mypostgresdb
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "myuser", "-d", "mydb"]
+      interval: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    networks:
+      - transcendence_network
+
+  web:
+    build:
+      context: ./Django  # Ce dossier contient le Dockerfile de Django
+    container_name: django
+    volumes:
+      - ./Django:/usr/src/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: sh -c "sleep 10 && pip install -r requirements.txt && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    networks:
+      - transcendence_network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web  # Changer ici de "django" à "web"
+    networks:
+      - transcendence_network
+
+volumes:
+  postgres_data:
+
+networks:
+  transcendence_network:
+    driver: bridge
