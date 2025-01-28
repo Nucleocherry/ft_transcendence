@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 
+
 @login_required
 def home(request):
     utilisateur = request.user  # L'utilisateur connecté
@@ -46,7 +47,7 @@ def inscription(request):
         messages.success(request, 'Inscription réussie ! Vous pouvez vous connecter.')
         auth_login(request, utilisateur)
 
-        return render(request, 'web/index.html')
+        return redirect('home')
 
 
 
@@ -68,7 +69,7 @@ def connexion(request):
         # Connexion de l'utilisateur
         auth_login(request, utilisateur)
 
-        return render(request, 'web/index.html')
+        return redirect('home')
 
 
 
@@ -82,16 +83,5 @@ def search_users(request):
 
     user_data = [{"username": user.username} for user in users]
     return JsonResponse({"users": user_data})
-
-
-@login_required
-def add_friend(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        user_to_add = get_object_or_404(Utilisateur, username=username)
-        current_user = request.user
-        current_user.amis.add(user_to_add)
-        return JsonResponse({"success": True, "message": f"{username} ajouté en ami!"})
-    return JsonResponse({"success": False, "message": "Méthode non autorisée."})
 
 

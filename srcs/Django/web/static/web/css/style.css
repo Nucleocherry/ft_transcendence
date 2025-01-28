@@ -22,6 +22,26 @@ html, body {
 	position: relative; /*Comme ca la fleche dans .bottomPage ne reste pas en haut aussi sur .mainPage*/
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* friend menu things */
 .friendMenu {
     position: fixed;  /* Permet de garder le menu visible en permanence */
@@ -94,7 +114,8 @@ html, body {
 /* Container des résultats */
 .friendResults {
     display: flex;
-    flex-wrap: wrap; /* Pour permettre plusieurs lignes */
+    /* flex-wrap: wrap; Pour permettre plusieurs lignes */
+	flex-direction: column; /* Aligne les éléments verticalement */
     gap: 10px; /* Espacement entre les cases */
     margin-top: 10px;
 }
@@ -114,12 +135,86 @@ html, body {
     transition: background-color 0.2s ease;
 }
 
-/* Effet au survol */
+
 .friendResults .friendCard:hover {
     background-color: #2b1d1d;
 }
 
+
+
+.userDetails.active {
+    transform: translateX(0); /* Fait glisser le panneau à l'écran */
+    opacity: 1; /* Le rend visible */
+}
+
+.userDetails.not_active {
+    display: none;
+}
+
+.userDetails {
+    position: fixed;  /* Permet de garder le menu visible en permanence */
+    top: 20px;  /* Décale un peu le menu du haut */
+    left: 0px;  /* Positionne le menu hors de la fenêtre à gauche */
+
+    width: 100%;  /* Largeur du menu */
+
+    height: calc(100% - 40px);  /* Occupe presque toute la hauteur de l'écran */
+    background-color: #222;  /* Couleur de fond pour le menu */
+    color: white;  /* Couleur du texte */
+    padding: 20px;  /* Espacement interne */
+    z-index: 1001;  /* Assure que le menu soit au-dessus des autres éléments */
+    border-radius: 15px; /* Arrondir les bords */
+    opacity: 0; /* Le rend invisible */
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+    transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
+}
+
+.backButton
+{
+	background-color: transparent; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #000000; /* Définit une couleur de title en noir (optionnel) */
+	border: none; /*enleve l'effet de bordure moche de base en html*/
+	
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: transform 0.3s ease, color 0.3s ease;  /* Transition pour l'effet de hover */
+
+	position: absolute; /*sa position est la ou je lui dis qu'elle est*/
+	left: 10px; /* et la je met a 10 px de la ou je veux que ce soit*/
+}
 /* end of friend menu things */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 .settingsMenu {
     position: fixed;  /* Permet de garder le menu visible en permanence */
     top: 20px;  /* Décale un peu le menu du haut */

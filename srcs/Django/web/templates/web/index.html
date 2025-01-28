@@ -69,6 +69,20 @@
     />
     <ul id="results"></ul>  <!-- Affichage des résultats de recherche -->
 
+	<div id="userDetails" class="userDetails">
+
+		<button class="backButton" onclick="resetUserDetails()">
+            <span class="material-symbols-outlined">arrow_back</span></button>
+
+
+        <h2 id="userTitle">Informations de l'utilisateur</h2>
+
+        <p><strong>Nom d'utilisateur :</strong> <span id="userUsername"></span></p>
+
+		<button onclick="addFriend()"  method="POST" ><span class="material-symbols-outlined">group_add</span></button>
+
+    </div>
+
 
     <div id="friendResults" class="friendResults">
         {% if amis %}
@@ -81,6 +95,9 @@
             <p>Vous n'avez pas d'amis.</p>  <!-- Message quand il n'y a pas d'amis -->
         {% endif %}
     </div>
+
+
+
 </div>
 
 	

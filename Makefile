@@ -1,6 +1,6 @@
 # Variables
 DOCKER_COMPOSE = docker-compose -f srcs/docker-compose.yml
-PROJECT_NAME = my_project
+PROJECT_NAME = transcendence
 
 .PHONY: all up down build logs migrate shell
 

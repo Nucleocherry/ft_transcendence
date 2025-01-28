@@ -114,9 +114,6 @@ function scrollToSettingsMenu(activate) {
 
 
 
-// Fonction pour récupérer la liste des utilisateurs
-// Fonction pour récupérer la liste des utilisateurs
-// Fonction pour récupérer la liste des utilisateurs
 function fetchUsers(query = '') {
     fetch(`/search_users/?q=${query}`)
         .then(response => response.json())  
@@ -125,11 +122,14 @@ function fetchUsers(query = '') {
             resultsContainer.innerHTML = '';
 
             if (data.users && data.users.length > 0) {
-                data.users.forEach(user => {
+                data.users.slice(0, 5).forEach(user => {
                     const button = document.createElement("button");
                     button.textContent = user.username;
                     button.onclick = function() {
-						return;  // Appelle la fonction pour ajouter un ami
+						
+						console.log(user.username);
+						friendOptionMenu(user);
+						// Appelle la fonction pour ajouter un ami
                     };
                     resultsContainer.appendChild(button);
                 });
@@ -144,6 +144,22 @@ function fetchUsers(query = '') {
         });
 }
 
+
+function friendOptionMenu(user) {
+	document.getElementById("userDetails").classList.add("active");
+	document.getElementById("userUsername").innerText = user.username;
+}
+
+function resetUserDetails() {
+	document.getElementById("userDetails").classList.remove("active");
+}
+
+
+function addFriend() {
+    // Récupérer le username affiché dans l'élément #userUsername
+ 
+    console.log("addFriend lancé");
+}
 
 
 
