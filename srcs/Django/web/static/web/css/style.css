@@ -169,6 +169,34 @@ html, body {
     transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
 }
 
+#userStatus {
+    display: inline-flex;
+    align-items: center;
+}
+
+#userStatus span {
+    margin-left: 10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+#friend-list {
+    background-color: none; /* Pour voir où l'élément se trouve */
+    padding: 10px;
+    list-style-type: none;
+}
+
+.online {
+    background-color: green;
+}
+
+.offline {
+    background-color: red;
+}
+
+
 .backButton
 {
 	background-color: transparent; /*permet d'enlever le fond blanc moche*/
@@ -230,7 +258,7 @@ html, body {
     opacity: 0; /* Le rend invisible */
     border-radius: 15px; /* Arrondir les bords */
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
-    z-index: 1000; /* Assure que le menu soit au-dessus des autres éléments */
+    z-index: 1001; /* Assure que le menu soit au-dessus des autres éléments */
 }
 
 .settingsMenu.active {
@@ -239,6 +267,36 @@ html, body {
 }
 
 .settingsMenu.not_active {
+    display: none;
+}
+
+
+
+
+.settingsProfileDetails {
+    position: fixed;  /* Permet de garder le menu visible en permanence */
+    top: 20px;  /* Décale un peu le menu du haut */
+    right: 0px;  /* Positionne le menu hors de la fenêtre à droite */
+
+	width: 100%;  /* Largeur du menu */
+
+    height: calc(100% - 40px);  /* Occupe toute la hauteur de l'écran */
+    background-color: #222;  /* Couleur de fond pour le menu */
+    color: white;  /* Couleur du texte */
+    padding: 20px;  /* Espacement interne */
+    transform: translateX(100%); /* Cache le panneau entièrement hors écran (à droite) */
+    opacity: 0; /* Le rend invisible */
+    border-radius: 15px; /* Arrondir les bords */
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+    z-index: 1000; /* Assure que le menu soit au-dessus des autres éléments */
+}
+
+.settingsProfileDetails.active {
+    transform: translateX(0); /* Fait glisser le panneau à l'écran */
+    opacity: 1; /* Le rend visible */
+}
+
+.settingsProfileDetails.not_active {
     display: none;
 }
 
