@@ -1,6 +1,4 @@
 /*------------Canvas and background setup---------*/
-let end_w = window.innerWidth * 90/100;
-let end_h = window.innerHeight* 50/100;
 let time = 0;
 let aitrigger = 1;
 
@@ -11,8 +9,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const canvas = document.getElementById("TheGame");
 
 
-    canvas.width = end_w;
-    canvas.height = end_h;
+    canvas.width = window.innerWidth * 90/100;
+    canvas.height =  window.innerHeight* 50/100;
     const ctx = canvas.getContext("2d");
 
     // Le reste du code de ton jeu...
@@ -82,8 +80,8 @@ class Ball {
         this.dx = -5; // Reset speed
       else
         this.dx = 5;
-      this.x = end_w / 2; // Reset ball to center
-      this.y = end_h / 2;
+      this.x = canvas.width / 2; // Reset ball to center
+      this.y = canvas.height / 2;
       this.dy = 0;
       trigger = 0;
     }
@@ -101,7 +99,7 @@ class Player {
   }
 
   movePlayer(y) {
-    if ((y < 0 && this.y > 0) || (y > 0 && this.y < end_h - 100))
+    if ((y < 0 && this.y > 0) || (y > 0 && this.y < canvas.height - 100))
       this.y += y;
   }
 
@@ -111,10 +109,10 @@ class Player {
   }
 }
 
-let p1 = new Player(10, 250);
-let p2 = new Player(end_w - 35, 250);
+let p1 = new Player(10, canvas.height/2);
+let p2 = new Player(canvas.width - 35, canvas.height/2);
 
-let ball = new Ball(end_w / 2, end_h / 2, 10);
+let ball = new Ball(canvas.width / 2, canvas.height / 2, 10);
 
 let trigger = 0;
 
@@ -160,7 +158,7 @@ function movement() {
   calculate_delay();
   if (keys[" "])
     trigger = 1;
-  if (aitrigger === 1 && ball.x >= end_w / 2 && ball.dx > 0 && trigger === 1)
+  if (aitrigger === 1 && ball.x >= canvas.width / 2 && ball.dx > 0 && trigger === 1)
     aiBot();
 }
 
@@ -184,12 +182,12 @@ function drawFrame() {
   p2.drawPlayer();
   if (ball.x <= 25)
     p2.points++;
-  if (ball.x >= end_w - 25)
+  if (ball.x >= canvas.width - 25)
     p1.points += 1;
 
   document.getElementById("p1-points").innerText = p1.points;
   document.getElementById("p2-points").innerText = p2.points;
-
+  window.addEventListener("resize", resizeCanvas);
   requestAnimationFrame(drawFrame);
 }
 
@@ -203,7 +201,13 @@ function resizeCanvas()
 {
 	canvas.width = window.innerWidth * 0.90;
     canvas.height =  window.innerHeight* 50/100;
+	p2.x = canvas.width - 35;
+	p2. y = canvas.height/2;
+	if (trigger === 0)
+	{
+		ball.x = canvas.width / 2;
+		ball.y = canvas.height / 2;
+	}
 }
-window.addEventListener("resize", resizeCanvas());
 console.log(window.innerHeight);
 });
