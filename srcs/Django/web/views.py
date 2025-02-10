@@ -43,7 +43,7 @@ def inscription(request):
         hashed_password = make_password(password_given)
 
         # Créer un nouvel utilisateur et l'enregistrer dans la base de données
-        utilisateur = Utilisateur(email=email_given, username=nickname_given, password=hashed_password, victory=0)
+        utilisateur = Utilisateur(email=email_given, username=nickname_given, password=hashed_password, victory=0, is_online=True)
         utilisateur.save()
 
         # Ajouter un message de succès après l'inscription
@@ -71,7 +71,8 @@ def connexion(request):
 
         # Connexion de l'utilisateur
         auth_login(request, utilisateur)
-
+        utilisateur.is_online = True
+        utilisateur.save()
         return redirect('home')
 
 
@@ -85,7 +86,7 @@ def search_users(request):
         users = Utilisateur.objects.all()
 
     # Ajoute l'ID des utilisateurs dans la réponse
-    user_data = [{"id": user.id, "username": user.username, "is_active": user.is_active} for user in users]
+    user_data = [{"id": user.id, "username": user.username, "is_online": user.is_online} for user in users]
     
     return JsonResponse({"users": user_data})
 
@@ -167,3 +168,14 @@ def showFriendRequestList(request):
     friends_data = [{"id": friend.id, "username": friend.username} for friend in friends]
 
     return JsonResponse({"success": True, "friends": friends_data})
+
+@login_required
+def deconnexion(request):
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            request.user.is_online = False
+            request.user.save(update_fields=['is_online'])  # Update only `is_online`
+            logout(request)
+        return JsonResponse({"success": True, "message": "Logged out successfully."})
+    
+    return JsonResponse({"success": False, "message": "Invalid request method."}, status=400)

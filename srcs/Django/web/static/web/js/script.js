@@ -129,7 +129,7 @@ function fetchUsers(query = '') {
                     button.textContent = user.username;
                     button.onclick = function() {
                         
-                        console.log(user.username);
+                       // console.log(user.username);
                         friendOptionMenu(user);
                         // Appelle la fonction pour ajouter un ami
                     };
@@ -142,27 +142,25 @@ function fetchUsers(query = '') {
             }
         })
         .catch(error => {
-            console.error('Error fetching users:', error);
+            console.error('Error fetching users:', error);""
         });
 }
 
 
 function friendOptionMenu(user) {
-	console.log("Friendoptionmenu open");
-    console.log("Utilisateur reçu dans friendOptionMenu :", user);
-    console.log("Utilisateur a l'ID", user.id);
+	//console.log("Friendoptionmenu open");
+  //  console.log("Utilisateur reçu dans friendOptionMenu :", user);
+  //  console.log("Utilisateur a l'ID", user.id);
 
     // Affiche les détails de l'utilisateur
     document.getElementById("userDetails").classList.add("active");
     document.getElementById("userUsername").innerText = user.username;
-    document.getElementById("userStatus").innerText = user.status;
+	console.log(user.is_online);
+    document.getElementById("userStatus").innerText = user.is_online;
     
     // Stocker l'ID de l'utilisateur cible dans le bouton
     document.getElementById("addFriendButton").setAttribute("data-user-id", user.id);
 }
-
-
-
 
 function resetUserDetails() {
     document.getElementById("userDetails").classList.remove("active");
@@ -182,7 +180,7 @@ function searchFriends() {
 //
 function addFriendRequest() {
 
-    console.log("addFriend lancé");
+   // console.log("addFriend lancé");
 
     // Récupérer l'ID de l'utilisateur cible depuis l'attribut data-user-id
     const toUserId = document.getElementById("addFriendButton").getAttribute("data-user-id");
@@ -193,7 +191,7 @@ function addFriendRequest() {
         return;
     }
 
-    console.log("ID de l'utilisateur cible:", toUserId);  // Affiche l'ID de l'utilisateur dans la console
+   // console.log("ID de l'utilisateur cible:", toUserId);  // Affiche l'ID de l'utilisateur dans la console
 
     // Envoi de la requête POST pour ajouter un ami, avec CSRF token
     fetch("/send-friend-request/", {
@@ -213,7 +211,7 @@ function addFriendRequest() {
 
 
 function showFriendList() {
-	console.log("je rentre dans la foncition");
+//	console.log("je rentre dans la foncition");
 	
 	// Requête AJAX pour obtenir la liste des amis
 	fetch('/showFriendList/')  // URL de ta vue Django
@@ -228,11 +226,11 @@ function showFriendList() {
 					const listItem = document.createElement('li');
 					listItem.textContent = friend.username;  // Afficher le nom de l'ami
 					friendList.appendChild(listItem);
-					console.log("jai trouve des amis j'essaye de les afficher");
+					//console.log("jai trouve des amis j'essaye de les afficher");
 				});
 			} else {
 				// Si aucun ami, afficher ce message
-				console.log("jai trouve aucun amis miskine j'essaye de les afficher");
+				//console.log("jai trouve aucun amis miskine j'essaye de les afficher");
 				const listItem = document.createElement('li');
 				listItem.textContent = "Aucun ami ajouté pour le moment.";
 				friendList.appendChild(listItem);
@@ -261,14 +259,14 @@ function showFriendRequestList() {
                     const button = document.createElement("button");
                     button.textContent = friend.username;  // Affiche le nom de l'ami
                     button.onclick = function() {
-                        console.log(friend.username);
+                     //   console.log(friend.username);
                         friendOptionMenu(friend);  // Appelle la fonction pour afficher les options d'ami
                     };
                     friendList.appendChild(button);  // Ajoute le bouton dans la liste
                 });
             } else {
                 // Si aucun ami, afficher ce message
-                console.log("Aucun ami ajouté pour le moment.");
+             //   console.log("Aucun ami ajouté pour le moment.");
                 const listItem = document.createElement('li');
                 listItem.textContent = "Aucune demande d'ami pour le moment.";
                 friendList.appendChild(listItem);
@@ -288,4 +286,42 @@ function getCSRFToken() {
     // Recherche le token CSRF dans le cookie ou dans le meta tag (selon ta config Django)
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
     return csrfToken;
+}
+
+/*----------------ONLINE-STATUS-------------
+window.addEventListener("beforeunload", function (event) {
+    if (performance.getEntriesByType("navigation")[0].type !== "reload") { 
+        // Type 1 means "refresh" 
+        navigator.sendBeacon("/logoutOnClose/");
+    }
+});*/
+
+function set_online_status(user)
+{
+	console.log(user.is_online);
+	if (user.is_online == True)
+		return "active";
+	else
+		return "inactive";
+}
+
+function loggout() {
+    fetch('/deconnexion/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(), // Include CSRF token for security
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({}) // Django expects some data, even an empty object
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("Logout successful!");
+            window.location.href = "/login/"; // Redirect after logout
+        } else {
+            console.error("Logout failed:", data.message);
+        }
+    })
+    .catch(error => console.error("Error:", error));
 }

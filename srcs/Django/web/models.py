@@ -7,6 +7,7 @@ from django.db.models import Q
 class Utilisateur(AbstractUser):
     victory = models.IntegerField(default=0)
 
+    is_online = models.BooleanField(default=False)  # New field
     def get_friends(self):
         """
         Retourne la liste des amis (demandes acceptées).

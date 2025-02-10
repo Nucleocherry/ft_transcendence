@@ -1,13 +1,13 @@
 /*------------Canvas and background setup---------*/
-let end_w = 800;
-let end_h = 500;
+let end_w = window.innerWidth * 90/100;
+let end_h = window.innerHeight* 50/100;
 let time = 0;
 let aitrigger = 1;
 
 
-console.log("yes it does1");
+//console.log("yes it does1");
 document.addEventListener('DOMContentLoaded', (event) => {
-	console.log("yes it does2");
+	//console.log("yes it does2");
     const canvas = document.getElementById("TheGame");
 
 
@@ -75,9 +75,9 @@ class Ball {
     } else if (this.isPlayerHit(p2)) {
       this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
       this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
-    } else if (this.y - this.radius <= 0 || this.y + this.radius >= 500)
+    } else if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height)
       this.dy *= -1;
-    else if ((this.x <= 25 || this.x >= end_w - 25) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
+    else if ((this.x <= 25 || this.x >= canvas.width - 25) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
       if (this.x <= 25)
         this.dx = -5; // Reset speed
       else
@@ -130,6 +130,8 @@ document.addEventListener('keydown', (event) => {
 document.addEventListener('keyup', (event) => {
   keys[event.key] = false;
 });
+
+
 
 function calculate_delay() {
   if (aitrigger === 0)
@@ -195,4 +197,13 @@ p1.drawPlayer();
 p2.drawPlayer();
 
 drawFrame();
+
+/*---CANVAS-RESIZING---*/
+function resizeCanvas()
+{
+	canvas.width = window.innerWidth * 0.90;
+    canvas.height =  window.innerHeight* 50/100;
+}
+window.addEventListener("resize", resizeCanvas());
+console.log(window.innerHeight);
 });

@@ -1,6 +1,6 @@
 from django.urls import path
+from django.conf import settings
 from . import views
-
 
 urlpatterns = [
     path('', views.home, name='home'),  # Route pour afficher la vue `home`
@@ -17,6 +17,5 @@ urlpatterns = [
 
 	path("showFriendList/", views.showFriendList, name="showFriendList"), #pour recup la liste d'amis
 	path("showFriendRequestList/", views.showFriendRequestList, name="showFriendRequestList"), #pour recup la liste de requete d'amis
-
-
+    path('deconnexion/', views.deconnexion, name='logout'),  # Default Django logout
 ]

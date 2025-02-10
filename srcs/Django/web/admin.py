@@ -4,7 +4,7 @@ from .models import Utilisateur
 
 class UtilisateurAdmin(UserAdmin):
     model = Utilisateur
-    list_display = ['username', 'first_name', 'last_name', 'email', 'victory']
+    list_display = ['username', 'first_name', 'last_name', 'email' , 'is_online', 'victory']
     search_fields = ['username', 'email']
     list_filter = ['is_staff', 'is_superuser']
 

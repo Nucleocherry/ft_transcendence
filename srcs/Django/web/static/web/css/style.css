@@ -398,6 +398,13 @@ html, body {
 
 /*---------------------------------------- ELEMENT SECONDAIRE DE GAME PAGE---------------------------*/
 
+.TheGame
+{
+	display:flex;
+	margin-bottom: 25%;
+	margin-left: 25%;
+	margin-right: 25%;
+}
 
 .gameTitle
 {
@@ -435,7 +442,8 @@ html, body {
 #scoreboard {
     display: flex;
     justify-content: space-between;
-    width: 500px; /* Width of the canvas to align points */
+	width: 500px;
+	margin-top: 20%;
 }
 
 #p1-points, #p2-points {
