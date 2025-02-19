@@ -21,7 +21,13 @@
 
     <!-- MAIN PAGE -->
     <div id="mainPage" class="mainPage">
+		
+		<div id="notif-box" class="show">
+			<p id="notif-message">Nouvelle notification !</p>
+			<button onclick="hideNotif()">OK</button>
+		</div>
         <h1 class="mainTitle">TRANSCENDENCE</h1>
+		<button id="show-notif" onclick="showNotif('Tu as un nouveau message !')">Afficher une notif</button>
 
         <button class="friendButton" onclick="scrollToFriendMenu()">
             <span class="material-symbols-outlined">group_add</span>
@@ -51,12 +57,33 @@
         </button>
 
 
-        <div id="scoreboard">
+        <div id="scoreboard" class="TheGame">
             <h2 id="p1-points" style="font-family: 'Poiret One';"></h2>
             <h2 id="p2-points" style="font-family: 'Poiret One';"></h2>
         </div>
-    
+		<center><div id="GameMenu">
+			<button id="VsAi" onclick="activateAi()">
+				<span class="material-symbols-outlined">smart_toy</span>
+				<span class="material-symbols-outlined">Vs Ai</span>
+			</button>
+			<button id="VsFriend" >
+				<span class="material-symbols-outlined">swords</span>
+				<span class="material-symbols-outlined">Vs Friend</span>
+			</button>
+		</div></center>
    		<canvas id= "TheGame" style="border:1px solid rgb(102, 90, 102);" class="TheGame"> </canvas>
+		<div id="winner">
+			<span class="material-symbols-outlined" style="scale: 2">trophy</span>
+			<span id="winText" class="material-symbols-outlined"></span>
+			<span id="returnButton" onclick="activateAi()" style="margin-top: 35%;">
+				<span class="material-symbols-outlined" >refresh</span>
+				<span style="   font-size: 35px; color: #f0f0f0; font-family: 'Poiret One'; " >Play again</span>
+			</span>
+			<span id="returnButton" onclick="returnToMenu()" style="margin-top: 60%;">
+				<span class="material-symbols-outlined" >arrow_back</span>
+				<span style="   font-size: 35px; color: #f0f0f0; font-family: 'Poiret One';" >Return to menu</span>
+			</span>
+		</div>
 
 
     </div>
@@ -106,8 +133,8 @@
 					class="addFriendButton" 
 					data-user-id="" 
 					onclick="addFriendRequest()">
-				<p>Ajouter en ami</p>
-				<span class="material-symbols-outlined">person_add</span>
+					<p>Ajouter</p>
+					<span class="material-symbols-outlined icon-smaller">person_add</span>
 			</button>
 		</div>
     </div>
@@ -126,7 +153,7 @@
     <div id="settingsMenu" class="settingsMenu">
         <h1>Settings</h1>
         <p>Votre Username : {{ request.user.username }}</p>
-        <button>AMI 1</button>
+        <a href="{% url 'logout' %}" id="logoutButton"><span class="material-symbols-outlined">logout</span></a>
     </div>
 
     

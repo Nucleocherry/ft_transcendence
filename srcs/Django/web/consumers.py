@@ -1,31 +1,34 @@
 import json
-from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
+from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
-        self.accept()
-        self.room_group_name = 'test'
+class WebConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user_id = self.scope['user'].id
+        self.group_name = f"user_{self.user_id}"
+        
+        print(f"✅ Connexion WebSocket : Utilisateur {self.user_id} ajouté au groupe {self.group_name}")
 
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-    def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        # On ajoute l'utilisateur à son groupe spécifique AVANT d'accepter la connexion
+        await self.channel_layer.group_add(self.group_name, self.channel_name)
 
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type':'chat_message',
-                'message':message
-            }
-        )
-    def chat_message(self, event):
-        message = event['message']
+        # On accepte la connexion WebSocket
+        await self.accept()
 
-        self.send(text_data=json.dumps({
-            'type':'chat',
-            'message':message
+    async def receive(self, text_data):
+        # Juste pour debugger
+        data = json.loads(text_data)
+        print(f"📩 Message reçu du client: {data}")
+
+    async def disconnect(self, close_code):
+        # Quand l'utilisateur se déconnecte, on le retire du groupe
+        await self.channel_layer.group_discard(self.group_name, self.channel_name)
+
+
+    async def update_lists(self, event):
+        """Envoie une mise à jour de la liste d'amis au client."""
+        await self.send(text_data=json.dumps({
+            "type": "update_lists",
+            "message": event.get("message", "Votre liste d'amis a été mise à jour.")
         }))

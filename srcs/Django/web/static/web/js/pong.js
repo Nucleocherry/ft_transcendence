@@ -1,6 +1,5 @@
 /*------------Canvas and background setup---------*/
-let time = 0;
-let aitrigger = 1;
+var aitrigger = 0;
 
 
 //console.log("yes it does1");
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 
     canvas.width = window.innerWidth * 90/100;
-    canvas.height =  window.innerHeight* 50/100;
+    canvas.height =  window.innerHeight* 70/100;
     const ctx = canvas.getContext("2d");
 
     // Le reste du code de ton jeu...
@@ -21,9 +20,6 @@ let height = 100;
 let maxBounceAngle = Math.PI / 3;
 let speed = 10;
 
-function getRandomArbitrary(min, max) {
-  return Math.random() * (max - min) + min;
-}
 /*----------------------------------------------*/
 class Ball {
   constructor(x, y, radius) {
@@ -95,7 +91,7 @@ class Player {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.points = 0;
+    this.points = 9;
   }
 
   movePlayer(y) {
@@ -129,17 +125,6 @@ document.addEventListener('keyup', (event) => {
   keys[event.key] = false;
 });
 
-
-
-function calculate_delay() {
-  if (aitrigger === 0)
-    time++;
-  if (time >= 350) {
-    aitrigger = 1;
-    time = 0;
-  }
-}
-
 function movement() {
   if ((keys["z"] || keys["w"])) {
     p1.movePlayer(-(speed + 5));
@@ -147,16 +132,7 @@ function movement() {
   if (keys["s"]) {
     p1.movePlayer(speed + 5);
   }
-  if (keys["ArrowUp"]) {
-    aitrigger = 0;
-    p2.movePlayer(-(speed + 5));
-  }
-  if (keys["ArrowDown"]) {
-    aitrigger = 0;
-    p2.movePlayer(speed + 5);
-  }
-  calculate_delay();
-  if (keys[" "])
+  if (keys[" "] && aitrigger === 1)
     trigger = 1;
   if (aitrigger === 1 && ball.x >= canvas.width / 2 && ball.dx > 0 && trigger === 1)
     aiBot();
@@ -169,26 +145,53 @@ function aiBot() {
     p2.movePlayer(speed - 5);
 }
 
+function reInitialize()
+{
+	ball.x = canvas.width / 2;
+	ball.y = canvas.height / 2;
+	p1.y = canvas.height / 2;
+	p2.y = canvas.height / 2;
+	p2.points = 0;
+	p1.points = 0;
+	trigger = 0;
+}
+
 function drawFrame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ball.drawBall();
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	ctx.fillStyle = "black";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ball.drawBall();
+	
+	if (is_in_bottom === 0)
+		movement();
+	if (trigger === 1)
+		ball.moveBall(p1, p2);
+	p1.drawPlayer();
+	p2.drawPlayer();
+	if (ball.x <= 25 && p2.points < 10)
+		p2.points++;
+	if (ball.x >= canvas.width - 25 && p1.points < 10)
+		p1.points += 1;
+	if (p1.points === 10 || p2.points == 10)
+	{
+		let TheGame = document.getElementById('TheGame');
+		let scoreboard = document.getElementById('scoreboard');
+		let winText = document.getElementById('winText');
+		let winner = document.getElementById('winner');
 
-  movement();
-  if (trigger === 1)
-    ball.moveBall(p1, p2);
-  p1.drawPlayer();
-  p2.drawPlayer();
-  if (ball.x <= 25)
-    p2.points++;
-  if (ball.x >= canvas.width - 25)
-    p1.points += 1;
-
-  document.getElementById("p1-points").innerText = p1.points;
-  document.getElementById("p2-points").innerText = p2.points;
-  window.addEventListener("resize", resizeCanvas);
-  requestAnimationFrame(drawFrame);
+		TheGame.classList.remove('active');
+		scoreboard.classList.remove('active');
+		if (p1.points === 10)
+			winText.innerText += "Player one won !";
+		else
+		winText.innerText += "Player two won !";
+		winner.classList.add('active');
+		reInitialize();
+	}
+	document.getElementById("p1-points").innerText = p1.points;
+	document.getElementById("p2-points").innerText = p2.points;
+	window.addEventListener("resize", resizeCanvas);
+	requestAnimationFrame(drawFrame);
 }
 
 p1.drawPlayer();
@@ -200,7 +203,7 @@ drawFrame();
 function resizeCanvas()
 {
 	canvas.width = window.innerWidth * 0.90;
-    canvas.height =  window.innerHeight* 50/100;
+    canvas.height =  window.innerHeight* 70/100;
 	p2.x = canvas.width - 35;
 	p2. y = canvas.height/2;
 	if (trigger === 0)
@@ -209,5 +212,4 @@ function resizeCanvas()
 		ball.y = canvas.height / 2;
 	}
 }
-console.log(window.innerHeight);
 });

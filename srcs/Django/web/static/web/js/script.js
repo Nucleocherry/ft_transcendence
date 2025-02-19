@@ -1,5 +1,53 @@
+/*------------------------ SETUP WEBSOCKET ------------------------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("🌐 Initialisation du WebSocket...");
+
+    // Définition de l'URL WebSocket
+    let url = `ws://${window.location.host}/ws/socket-server/`;
+    window.mySocket = new WebSocket(url);
+
+    // Connexion réussie
+    window.mySocket.onopen = function () {
+        console.log("✅ WebSocket connecté !");
+    };
+
+    // Gestion des erreurs
+    window.mySocket.onerror = function (error) {
+        console.error("❌ Erreur WebSocket :", error);
+    };
+
+    // Fermeture et tentative de reconnexion
+    window.mySocket.onclose = function () {
+        console.warn("⚠️ WebSocket déconnecté. Reconnexion dans 3 secondes...");
+        setTimeout(() => {
+            window.mySocket = new WebSocket(url); // Reconnexion
+        }, 3000);
+    };
+
+	window.mySocket.onmessage = function(event) {
+		console.log("📩 WebSocket message reçu:", event.data);
+	
+		const data = JSON.parse(event.data);
+		console.log("📩 Données reçues:", data);
+	
+		if (data.type === "update_lists") {
+			console.log("🔄 Mise à jour de la liste d'amis !");
+			showFriendList();
+			showFriendRequestList();
+			showNotif("Nouvelle demande d'ami !")
+		}
+	};
+});
+
+
+/*--------SETUP---------*/
+showFriendList();
+showFriendRequestList();
+let notifTimeout; // Variable pour stocker le timeout
+
 /*------------------------------------FONCTION PRINCIPALE MOUVEMENT SUR LA PAGE-------------------------*/
-let is_in_bottom = 1
+var is_in_bottom = 1
 function scrollToBottom()
 {
     document.getElementById('bottomPage').scrollIntoView({ behavior: 'smooth' });
@@ -14,6 +62,59 @@ function scrollToMainPage()
         document.getElementById('mainPage').scrollIntoView({ behavior: 'smooth' });
     }
 }
+/*----------------GAME STUFF--------------*/ 
+function activateAi()
+{
+	let GameMenu = document.getElementById('GameMenu');
+	let	TheGame = document.getElementById('TheGame');
+	let	Scoreboard = document.getElementById('scoreboard');
+	let winner = document.getElementById('winner');
+
+	GameMenu.classList.add('inactive');
+	TheGame.classList.add('active');
+	Scoreboard.classList.add('active');
+	winner.classList.remove('active');
+	aitrigger = 1;
+}
+
+function returnToMenu()
+{
+	let GameMenu = document.getElementById('GameMenu');
+	let winner = document.getElementById('winner');
+
+	GameMenu.classList.remove('inactive');
+	winner.classList.remove('active');
+	aitrigger = 0;
+
+}
+/*---------------------------------------*/
+/*- - - - Our notif - - - -*/
+
+function showNotif(message) {
+    const notifBox = document.getElementById("notif-box");
+    const notifMessage = document.getElementById("notif-message");
+
+    notifMessage.textContent = message;
+	notifBox.classList.remove("hide"); // Retire la classe pour masquer
+    notifBox.classList.add("show"); // Ajoute la classe pour l’animation
+
+    // Annuler le timeout précédent s'il existe
+    if (notifTimeout) {
+        clearTimeout(notifTimeout);
+    }
+
+    // Définir un nouveau timeout pour masquer après 3 sec
+    notifTimeout = setTimeout(hideNotif, 3000);
+}
+
+function hideNotif() {
+    const notifBox = document.getElementById("notif-box");
+    notifBox.classList.remove("show"); // Retire la classe pour masquer
+    notifBox.classList.add("hide"); // Ajoute la classe pour l’animation
+
+}
+
+
 
 /*----Function to show the friends menu-------*/
 
@@ -27,8 +128,6 @@ document.addEventListener('mousemove', function(event) {
     
     // Calculer 15% de la largeur de la page
     let threshold = pageWidth * 0.15;
-
-	runningInBG();
     // Vérifier si la souris est dans les 15% à gauche
     if (mouseX <= threshold && is_in_bottom === 1) {
         // Action quand la souris est dans les 15% à gauche
@@ -186,6 +285,8 @@ function addFriendRequest() {
     const toUserId = document.getElementById("addFriendButton").getAttribute("data-user-id");
 
     // Vérifie si l'ID est bien récupéré
+	console.log(toUserId);
+
     if (!toUserId) {
         alert("Erreur : ID utilisateur manquant.");
         return;
@@ -214,6 +315,7 @@ function showFriendList() {
 //	console.log("je rentre dans la foncition");
 	
 	// Requête AJAX pour obtenir la liste des amis
+	console.log("FUNCTION CCALLED : showFriendList");
 	fetch('/showFriendList/')  // URL de ta vue Django
 		.then(response => response.json())  // On transforme la réponse en JSON
 		.then(data => {
@@ -244,6 +346,7 @@ function showFriendList() {
 function showFriendRequestList() {
 
     // Requête AJAX pour obtenir la liste des demandes d'amis
+	console.log("FUNCTION CCALLED : showFriendRequestList");
     fetch('/showFriendRequestList/')  // URL de ta vue Django
         .then(response => {
             //console.log(response);  // Affiche la réponse brute
@@ -277,16 +380,40 @@ function showFriendRequestList() {
         });
 }
 
-function runningInBG() {
-	showFriendList();
-	showFriendRequestList();
+
+
+
+// Fonction pour afficher une notification
+function showNotification(message) {
+    if (!("Notification" in window)) {
+        alert("Votre navigateur ne supporte pas les notifications.");
+    } else if (Notification.permission === "granted") {
+        new Notification(message);
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification(message);
+            }
+        });
+    }
 }
+
+
+
+
+
+
+
 
 function getCSRFToken() {
     // Recherche le token CSRF dans le cookie ou dans le meta tag (selon ta config Django)
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
     return csrfToken;
 }
+
+
+
+
 
 /*----------------ONLINE-STATUS-------------
 window.addEventListener("beforeunload", function (event) {
@@ -295,15 +422,6 @@ window.addEventListener("beforeunload", function (event) {
         navigator.sendBeacon("/logoutOnClose/");
     }
 });*/
-
-function set_online_status(user)
-{
-	console.log(user.is_online);
-	if (user.is_online == True)
-		return "active";
-	else
-		return "inactive";
-}
 
 function loggout() {
     fetch('/deconnexion/', {

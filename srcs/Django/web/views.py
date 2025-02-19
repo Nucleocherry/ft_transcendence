@@ -9,9 +9,11 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth import logout
 from .models import FriendRequest
 from django.db.models import Q
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 @login_required
 def home(request):
@@ -109,44 +111,96 @@ def get_user_id(request):
 def send_friend_request(request):
     if request.method == "POST":
         to_user_id = request.POST.get("to_user_id")
-
-        # Vérification que l'ID est bien fourni
         if not to_user_id:
-            return JsonResponse({"success": False, "message": "ID utilisateur manquant."}, status=400)
+            return JsonResponse(
+                {"success": False, "message": "ID utilisateur manquant."}, status=400
+            )
 
-        from_user = request.user  # L'utilisateur qui envoie la demande
-        
+        from_user = request.user
+
         try:
             to_user = Utilisateur.objects.get(id=to_user_id)
-
-            # Empêcher l'utilisateur de s'envoyer une demande à lui-même
             if from_user == to_user:
-                return JsonResponse({"success": False, "message": "Vous ne pouvez pas vous ajouter vous-même."}, status=400)
+                return JsonResponse(
+                    {"success": False, "message": "Vous ne pouvez pas vous ajouter vous-même."},
+                    status=400,
+                )
 
-            # Vérifier si une demande existe déjà dans l'une ou l'autre direction
             existing_request = FriendRequest.objects.filter(
-                Q(from_user=from_user, to_user=to_user) | Q(from_user=to_user, to_user=from_user)
+                Q(from_user=from_user, to_user=to_user)
+                | Q(from_user=to_user, to_user=from_user)
             ).first()
 
+            channel_layer = get_channel_layer()
+
             if existing_request:
-                if existing_request.status == 'pending':
-                    # Si une demande "pending" existe, l'accepter
-                    existing_request.status = 'accepted'
-                    existing_request.save()
-                    return JsonResponse({"success": True, "message": "Demande d'amis acceptée !"})
+                if existing_request.status == "pending":
+                    if existing_request.from_user == from_user:
+                        return JsonResponse(
+                            {"success": False, "message": "Demande déjà envoyée."},
+                            status=400,
+                        )
+                    else:
+                        # L'autre utilisateur avait déjà envoyé une demande ; on l'accepte
+                        existing_request.status = "accepted"
+                        existing_request.save()
 
-                else:
-                    return JsonResponse({"success": False, "message": "Demande déjà traitée."}, status=400)
+                        # Notifier les deux utilisateurs via WebSocket (consumer unique update_lists)
+                        async_to_sync(channel_layer.group_send)(
+                            f"user_{from_user.id}",
+                            {
+                                "type": "update_lists",
+                                "message": "Votre liste d'amis a été mise à jour.",
+                            },
+                        )
+                        async_to_sync(channel_layer.group_send)(
+                            f"user_{to_user.id}",
+                            {
+                                "type": "update_lists",
+                                "message": "Votre liste d'amis a été mise à jour.",
+                            },
+                        )
 
-            # Si aucune demande n'existe, créer une nouvelle demande
+                        return JsonResponse(
+                            {"success": True, "message": "Demande d'amis acceptée !"}
+                        )
+
+                return JsonResponse(
+                    {"success": False, "message": "Demande déjà traitée."}, status=400
+                )
+
+            # Créer une nouvelle demande d'ami (statut "pending")
             FriendRequest.objects.create(from_user=from_user, to_user=to_user, status="pending")
+            print(f"📢 WebSocket envoyé à {to_user.id} pour une demande d'ami")
 
-            return JsonResponse({"success": True, "message": "Demande envoyée avec succès !"})
+            # Notifier les deux utilisateurs via WebSocket (consumer unique update_lists)
+            async_to_sync(channel_layer.group_send)(
+                f"user_{from_user.id}",
+                {
+                    "type": "update_lists",
+                    "message": "Votre liste d'amis a été mise à jour.",
+                },
+            )
+            async_to_sync(channel_layer.group_send)(
+                f"user_{to_user.id}",
+                {
+                    "type": "update_lists",
+                    "message": "Votre liste d'amis a été mise à jour.",
+                },
+            )
+
+            return JsonResponse(
+                {"success": True, "message": "Demande envoyée avec succès !"}
+            )
 
         except Utilisateur.DoesNotExist:
-            return JsonResponse({"success": False, "message": "Utilisateur introuvable."}, status=404)
+            return JsonResponse(
+                {"success": False, "message": "Utilisateur introuvable."}, status=404
+            )
 
-    return JsonResponse({"success": False, "message": "Méthode non autorisée."}, status=405)
+    return JsonResponse(
+        {"success": False, "message": "Méthode non autorisée."}, status=405
+    )
 
 
 @login_required
@@ -170,12 +224,6 @@ def showFriendRequestList(request):
     return JsonResponse({"success": True, "friends": friends_data})
 
 @login_required
-def deconnexion(request):
-    if request.method == "POST":
-        if request.user.is_authenticated:
-            request.user.is_online = False
-            request.user.save(update_fields=['is_online'])  # Update only `is_online`
-            logout(request)
-        return JsonResponse({"success": True, "message": "Logged out successfully."})
-    
-    return JsonResponse({"success": False, "message": "Invalid request method."}, status=400)
+def logout_view(request):
+    logout(request)
+    return redirect('/login/') 
