@@ -51,6 +51,14 @@ class Utilisateur(AbstractUser):
         )
         return [request.to_user for request in blocked_requests]
 
+    def get_messages_with(self, other_user):
+        """
+        Récupère tous les messages échangés avec un autre utilisateur.
+        """
+        return Message.objects.filter(
+            models.Q(sender=self, receiver=other_user) |
+            models.Q(sender=other_user, receiver=self)
+        ).order_by("timestamp")
 
 class FriendRequest(models.Model):
     STATUS_CHOICES = [
@@ -90,4 +98,17 @@ class FriendRequest(models.Model):
         return FriendRequest.objects.filter(
             Q(from_user=user1, to_user=user2) | Q(from_user=user2, to_user=user1)
         ).values_list("id", flat=True).first()
-    
+
+class Message(models.Model):
+    sender = models.ForeignKey(
+        Utilisateur, on_delete=models.CASCADE, related_name="sent_messages"
+    )
+    receiver = models.ForeignKey(
+        Utilisateur, on_delete=models.CASCADE, related_name="received_messages"
+    )
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Message from {self.sender.username} to {self.receiver.username} at {self.timestamp}"

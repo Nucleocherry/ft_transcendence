@@ -1,19 +1,22 @@
-from django.shortcuts import render
-from django.shortcuts import redirect
-from django.http import JsonResponse
-from django.http import HttpResponse
-from django.contrib import messages  # Importer messages
-from .models import Utilisateur
-from django.shortcuts import get_object_or_404
-from django.contrib.auth import login as auth_login
+import json
+
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages  
+from django.contrib.auth import login as auth_login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.hashers import check_password
-from django.contrib.auth import logout
-from .models import FriendRequest
+from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import Q
+from django.utils.dateparse import parse_datetime
+
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+
+from .models import Utilisateur, FriendRequest, Message
+
+
+
+
 
 @login_required
 def home(request):
@@ -150,14 +153,14 @@ def send_friend_request(request):
                             f"user_{from_user.id}",
                             {
                                 "type": "update_lists",
-                                "message": "Votre liste d'amis a été mise à jour.",
+                                "message": f"Vous avez accpetez la demande d'ami de {to_user.username}",
                             },
                         )
                         async_to_sync(channel_layer.group_send)(
                             f"user_{to_user.id}",
                             {
                                 "type": "update_lists",
-                                "message": "Votre liste d'amis a été mise à jour.",
+                                "message": f"{from_user.username} a accepté votre demande d'ami",
                             },
                         )
 
@@ -178,14 +181,14 @@ def send_friend_request(request):
                 f"user_{from_user.id}",
                 {
                     "type": "update_lists",
-                    "message": "Votre liste d'amis a été mise à jour.",
+                    "message": f"Demande d'ami envoyée à {to_user.username}",
                 },
             )
             async_to_sync(channel_layer.group_send)(
                 f"user_{to_user.id}",
                 {
                     "type": "update_lists",
-                    "message": "Votre liste d'amis a été mise à jour.",
+                    "message": f"Nouvelle demande d'ami de {from_user.username}",
                 },
             )
 
@@ -201,6 +204,117 @@ def send_friend_request(request):
     return JsonResponse(
         {"success": False, "message": "Méthode non autorisée."}, status=405
     )
+
+
+
+@login_required
+def block_user(request):
+    if request.method == "POST":
+        to_user_id = request.POST.get("to_user_id")
+        if not to_user_id:
+            return JsonResponse(
+                {"success": False, "message": "ID utilisateur manquant."}, status=400
+            )
+
+        from_user = request.user
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+            if from_user == to_user:
+                return JsonResponse(
+                    {"success": False, "message": "Vous ne pouvez pas vous bloquer vous-même."},
+                    status=400,
+                )
+
+            # Supprimer une éventuelle relation d'amitié existante
+            FriendRequest.objects.filter(
+                Q(from_user=from_user, to_user=to_user) | Q(from_user=to_user, to_user=from_user)
+            ).delete()
+
+            # Vérifier si l'utilisateur est déjà bloqué
+            if FriendRequest.objects.filter(from_user=from_user, to_user=to_user).exists():
+                return JsonResponse(
+                    {"success": False, "message": "Utilisateur déjà bloqué."}, status=400
+                )
+
+            # Créer une relation de blocage
+            FriendRequest.objects.create(from_user=from_user, to_user=to_user, status="blocked")
+
+            return JsonResponse(
+                {"success": True, "message": "Utilisateur bloqué avec succès."}
+            )
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Utilisateur introuvable."}, status=404
+            )
+
+    return JsonResponse(
+        {"success": False, "message": "Méthode non autorisée."}, status=405
+    )
+
+
+@login_required
+def is_user_blocked(request):
+    if request.method == "GET":
+        to_user_id = request.GET.get("to_user_id")
+        if not to_user_id:
+            return JsonResponse(
+                {"success": False, "message": "ID utilisateur manquant."}, status=400
+            )
+
+        from_user = request.user
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+
+            # Vérifie si from_user a bloqué to_user (uniquement dans ce sens)
+            is_blocked = FriendRequest.objects.filter(from_user=from_user, to_user=to_user, status="blocked").exists()
+
+            print("IS BLOCKED", is_blocked)
+            return JsonResponse({"success": True, "is_blocked": is_blocked})
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Utilisateur introuvable."}, status=404
+            )
+
+    return JsonResponse(
+        {"success": False, "message": "Méthode non autorisée."}, status=405
+    )
+
+@login_required
+def is_user_friend(request):
+    if request.method == "GET":
+        to_user_id = request.GET.get("to_user_id")
+        if not to_user_id:
+            return JsonResponse(
+                {"success": False, "message": "ID utilisateur manquant."}, status=400
+            )
+
+        from_user = request.user
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+
+            # Vérifie si une relation d'amitié existe dans les deux sens
+            is_friend = FriendRequest.objects.filter(
+                Q(from_user=from_user, to_user=to_user, status="accepted") |
+                Q(from_user=to_user, to_user=from_user, status="accepted")
+            ).exists()
+
+            print("IS FRIEND", is_friend)
+            return JsonResponse({"success": True, "is_friend": is_friend})
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Utilisateur introuvable."}, status=404
+            )
+
+    return JsonResponse(
+        {"success": False, "message": "Méthode non autorisée."}, status=405
+    )
+
 
 
 @login_required
@@ -227,3 +341,104 @@ def showFriendRequestList(request):
 def logout_view(request):
     logout(request)
     return redirect('/login/') 
+
+
+@login_required
+def sendMessage(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Convertit le JSON en dictionnaire Python
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Format JSON invalide."}, status=400)
+
+        to_user_id = data.get("to_user_id")  # Récupère l'ID de l'utilisateur
+        message_txt = data.get("message")  # Récupère le message
+
+        if not to_user_id or not message_txt:
+            return JsonResponse({"success": False, "message": "Données manquantes."}, status=400)
+
+        from_user = request.user
+        channel_layer = get_channel_layer()
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+            if from_user == to_user:
+                return JsonResponse(
+                    {"success": False, "message": "Vous ne pouvez pas envoyer un message à vous-même."},
+                    status=400,
+                )
+
+            # Créer un message
+            Message.objects.create(sender=from_user, receiver=to_user, content=message_txt)
+
+                        # Notifier les deux utilisateurs via WebSocket (consumer unique update_lists)
+            async_to_sync(channel_layer.group_send)(
+                f"user_{from_user.id}",
+                {
+                    "type": "update_messages",
+                    "message": "Les messages on etait mis a jours.",
+                },
+            )
+            async_to_sync(channel_layer.group_send)(
+                f"user_{to_user.id}",
+                {
+                    "type": "update_messages",
+                    "message": "Les messages on etait mis a jours",
+                },
+            )
+
+            return JsonResponse({"success": True, "message": "Message envoyé."})
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Utilisateur introuvable."}, status=404)
+
+    return JsonResponse({"success": False, "message": "Méthode non autorisée."}, status=405)
+
+
+
+@login_required
+def getMessages(request):
+    if request.method == "GET":
+        from_user = request.user
+        to_user_id = request.GET.get("to_user_id")
+        timestamp = request.GET.get("timestamp")  # Optionnel, pour récupérer les messages après un certain temps
+
+        if not to_user_id:
+            return JsonResponse({"success": False, "message": "ID du destinataire manquant."}, status=400)
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+            
+            # Récupération des messages échangés
+            messages = Message.objects.filter(
+                Q(sender=from_user, receiver=to_user) |
+                Q(sender=to_user, receiver=from_user)
+            )
+
+            # Filtrer les messages à partir d'un timestamp donné
+            if timestamp:
+                timestamp = parse_datetime(timestamp)
+                if timestamp:
+                    messages = messages.filter(timestamp__gt=timestamp)
+
+            # Trier par date et limiter aux 100 plus récents
+            messages = messages.order_by("timestamp")[:100]
+
+            # Construire la réponse JSON
+            messages_data = [
+                {
+                    "id": msg.id,
+                    "sender": msg.sender.id,
+                    "receiver": msg.receiver.id,
+                    "content": msg.content,
+                    "timestamp": msg.timestamp.isoformat(),
+                }
+                for msg in messages
+            ]
+
+            return JsonResponse({"success": True, "messages": messages_data})
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse({"success": False, "message": "Utilisateur introuvable."}, status=404)
+
+    return JsonResponse({"success": False, "message": "Méthode non autorisée."}, status=405)

@@ -26,6 +26,7 @@ services:
     container_name: django
     volumes:
       - ./Django:/usr/src/app
+      - ./Django/web/static:/usr/src/app/web/static
     ports:
       - "8000:8000"
     depends_on:

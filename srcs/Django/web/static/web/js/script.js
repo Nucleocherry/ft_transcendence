@@ -1,5 +1,6 @@
 /*------------------------ SETUP WEBSOCKET ------------------------- */
 
+
 document.addEventListener("DOMContentLoaded", () => {
     console.log("🌐 Initialisation du WebSocket...");
 
@@ -18,8 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Fermeture et tentative de reconnexion
-    window.mySocket.onclose = function () {
-        console.warn("⚠️ WebSocket déconnecté. Reconnexion dans 3 secondes...");
+    window.mySocket.onclose = function (event) {
+        console.log("⚠️  dans 3 secondes...:", event);
         setTimeout(() => {
             window.mySocket = new WebSocket(url); // Reconnexion
         }, 3000);
@@ -35,8 +36,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			console.log("🔄 Mise à jour de la liste d'amis !");
 			showFriendList();
 			showFriendRequestList();
-			showNotif("Nouvelle demande d'ami !")
+			showNotif(data.message)
 		}
+		else if (data.type === "update_messages") {
+			console.log("new message recieved");
+			fetchMessages();
+		}
+		else if (friendtrigger === 1 && data.type === "movement")
+			movep2( data);
+
 	};
 });
 
@@ -45,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
 showFriendList();
 showFriendRequestList();
 let notifTimeout; // Variable pour stocker le timeout
-
+let lastMessageTimestamp = 0;
 /*------------------------------------FONCTION PRINCIPALE MOUVEMENT SUR LA PAGE-------------------------*/
 var is_in_bottom = 1
 function scrollToBottom()
@@ -63,7 +71,7 @@ function scrollToMainPage()
     }
 }
 /*----------------GAME STUFF--------------*/ 
-function activateAi()
+function activateAiGame()
 {
 	let GameMenu = document.getElementById('GameMenu');
 	let	TheGame = document.getElementById('TheGame');
@@ -75,6 +83,78 @@ function activateAi()
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
 	aitrigger = 1;
+}
+
+function activateFriendMenu()
+{
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
+
+	VsAi.classList.add('inactive');
+	VsFriend.classList.add('inactive');
+	local.classList.add('active');
+	online.classList.add('active');
+	
+}
+
+function ChallengeFriend()
+{
+	let	friendMenu = document.getElementsByClassName('friendList');
+	let friendTitle = document.getElementById('FriendTitle');
+	let	TheGame = document.getElementById('TheGame');
+	let	Scoreboard = document.getElementById('scoreboard');
+	let winner = document.getElementById('winner');
+
+	friendTitle.classList.remove('active');
+	friendMenu[0].classList.remove('active');
+	TheGame.classList.add('active');
+	Scoreboard.classList.add('active');
+	winner.classList.remove('active');
+	friendtrigger = 1;
+	
+}
+
+function ShowFriendList_game()
+{
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
+	let	friendList = document.getElementById('friendList');
+	let	friendMenu = document.getElementsByClassName('friendList');
+	let friends = document.getElementById('friend-list');
+	let friendTitle = document.getElementById('FriendTitle');
+
+	VsAi.classList.add('inactive');
+	VsFriend.classList.add('inactive');
+	local.classList.remove('active');
+	online.classList.remove('active');
+	friendTitle.classList.add('active');
+	friendMenu[0].classList.add('active');
+	
+	friendList.innerHTML = '';
+
+    if (friends.children.length === 0) {
+        friendList.insertAdjacentHTML(
+            'beforeend',
+            `<li class="material-symbols-outlined">Aucun ami trouvé</li>`
+        );
+        return;
+    }
+
+    // Loop through friends and append them correctly
+    for (let i = 0; i < friends.children.length; i++) {
+        let friendName = friends.children[i].textContent.trim(); // Get the name
+
+        console.log(`Ajout d'un ami: ${friendName}`);
+
+        friendList.insertAdjacentHTML(
+            'beforeend',
+            `<button onclick="ChallengeFriend()">${friendName}</button><br>`
+        );
+    }
 }
 
 function returnToMenu()
@@ -252,6 +332,8 @@ function friendOptionMenu(user) {
   //  console.log("Utilisateur a l'ID", user.id);
 
     // Affiche les détails de l'utilisateur
+	selectUserDisplay(user.id);
+
     document.getElementById("userDetails").classList.add("active");
     document.getElementById("userUsername").innerText = user.username;
 	console.log(user.is_online);
@@ -259,6 +341,14 @@ function friendOptionMenu(user) {
     
     // Stocker l'ID de l'utilisateur cible dans le bouton
     document.getElementById("addFriendButton").setAttribute("data-user-id", user.id);
+    document.getElementById("blockButton").setAttribute("data-user-id", user.id);
+
+    document.getElementById("sendMessageBar").setAttribute("data-user-id", user.id);
+
+	console.log("test");
+	lastMessageTimestamp = 0;
+	clearChat();
+	fetchMessages();
 }
 
 function resetUserDetails() {
@@ -305,12 +395,96 @@ function addFriendRequest() {
     })
     .then(response => response.json())
     .then(result => {
-        alert(result.message); // Affiche le résultat (succès ou erreur)
+		selectUserDisplay(toUserId);
     })
     .catch(error => console.error("Erreur lors de l'envoi de la demande d'ami:", error));
 }
 
+function blockUser() {
+	// Récupérer l'ID de l'utilisateur cible depuis l'attribut data-user-id
+	const toUserId = document.getElementById("blockButton").getAttribute("data-user-id");
 
+	// Vérifie si l'ID est bien récupéré
+	console.log("id utilisateur ->", toUserId);
+
+	if (!toUserId) {
+		alert("Erreur : ID utilisateur manquant.");
+		return;
+	}
+	// Envoi de la requête POST pour ajouter un ami, avec CSRF token
+	fetch("/blockUser/", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+			"X-CSRFToken": getCSRFToken(),  // Récupère le CSRF token depuis le cookie
+		},
+		body: `to_user_id=${toUserId}`  // Envoie l'ID dans le corps de la requête
+	})
+	.then(response => response.json())
+	.then(result => {
+		selectUserDisplay(toUserId);
+	})
+	.catch(error => console.error("Erreur lors du blockage:", error));
+}
+
+
+
+async function isUserBlocked(toUserId) {
+   return fetch(`/isUserBlocked/?to_user_id=${toUserId}`, {
+	   method: "GET",
+	   headers: { "Content-Type": "application/json" }
+   })
+   .then(response => response.json())
+   .then(data => {
+	   console.log("is user blocked:", data.is_blocked);
+	   if (data.success) {
+		   return data.is_blocked; // Retourne True ou False
+	   } else {
+		   console.error("Erreur API:", data.message);
+		   return false; // Valeur par défaut en cas d'erreur
+	   }
+   })
+   .catch(error => {
+	   console.error("Erreur lors de la requête:", error);
+	   return false;
+   });
+}
+
+async function isUserFriend(toUserId) {
+   return fetch(`/isUserFriend/?to_user_id=${toUserId}`, {
+	   method: "GET",
+	   headers: { "Content-Type": "application/json" }
+   })
+   .then(response => response.json())
+   .then(data => {
+	   console.log("is user friend:", data.is_friend);
+	   if (data.success) {
+		   return data.is_friend; // Retourne True ou False
+	   } else {
+		   console.error("Erreur API:", data.message);
+		   return false;
+	   }
+   })
+   .catch(error => {
+	   console.error("Erreur lors de la requête:", error);
+	   return false;
+   });
+}
+
+function selectUserDisplay(toUserId) {
+   Promise.all([isUserBlocked(toUserId), isUserFriend(toUserId)])
+	   .then(([blocked, friend]) => {
+		   console.log("Blocked:", blocked, "| Friend:", friend);
+
+		   // Gérer l'affichage du blocage
+		   document.getElementById("ifBlocked").style.display = blocked ? "block" : "none";
+		   document.getElementById("ifUnblocked").style.display = blocked ? "none" : "block";
+
+		   // Gérer l'affichage de l'amitié
+		   document.getElementById("ifFriend").style.display = friend ? "block" : "none";
+		   document.getElementById("ifNotFriend").style.display = friend ? "none" : "block";
+	   });
+}
 function showFriendList() {
 //	console.log("je rentre dans la foncition");
 	
@@ -325,10 +499,14 @@ function showFriendList() {
 			if (data.success && data.friends.length > 0) {
 				// Afficher chaque ami dans la liste
 				data.friends.forEach(friend => {
-					const listItem = document.createElement('li');
-					listItem.textContent = friend.username;  // Afficher le nom de l'ami
-					friendList.appendChild(listItem);
-					//console.log("jai trouve des amis j'essaye de les afficher");
+                    const button = document.createElement("button");
+                    button.textContent = friend.username;  // Affiche le nom de l'ami
+					button.id = friend.username;
+                    button.onclick = function() {
+                     //   console.log(friend.username);
+                        friendOptionMenu(friend);  // Appelle la fonction pour afficher les options d'ami
+                    };
+                    friendList.appendChild(button);  // Ajoute le bouton dans la liste
 				});
 			} else {
 				// Si aucun ami, afficher ce message
@@ -442,4 +620,110 @@ function loggout() {
         }
     })
     .catch(error => console.error("Error:", error));
+}
+
+
+/*- - -- - - CHAT FONCTIONS - - - - -*/
+
+function scrollChatToBottom() {
+	const chat = document.getElementById("userChat");
+
+	chat.scrollTo({
+		top: chat.scrollHeight,
+		behavior: "smooth" // Animation fluide
+	});
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Sélection des éléments
+	const input = document.getElementById("sendMessageBar"); // Récupère l'input
+	const chat = document.getElementById("userChat"); // Récupère la div du chat
+
+    // Fonction pour envoyer un message
+	function sendMessage() {
+		const messageText = input.value.trim(); // Récupère le texte et enlève les espaces inutiles
+	
+		if (messageText === "") return; // Empêche l'envoi d'un message vide
+	
+		const toUserId = input.getAttribute("data-user-id");
+
+		// Vérifie si l'ID est bien récupéré
+		console.log("ID ->", toUserId);
+
+		if (!toUserId) {
+			alert("Erreur : ID utilisateur manquant.");
+			return;
+		}
+	
+		// Vide l'input
+		input.value = "";
+	
+	
+		// Envoi du message au serveur Django
+		fetch("/send-message/", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"X-CSRFToken": getCSRFToken() // Protection CSRF pour Django
+			},
+			body: JSON.stringify({  // Convertit en JSON
+				to_user_id: toUserId,  
+				message: messageText  
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (!data.success) {
+				console.error("Erreur:", data.message);
+				// Optionnel : afficher un message d'erreur à l'utilisateur
+			}
+		})
+		.catch(error => console.error("Erreur lors de l'envoi:", error));
+	}
+
+    // Écoute l'événement "Enter" sur l'input
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // Empêche le saut de ligne dans l'input
+            sendMessage(); // Envoie le message
+        }
+    });
+});
+
+function clearChat() {
+    const chat = document.getElementById("userChat");
+    chat.innerHTML = '';  // Efface tout le contenu de la div
+}
+
+function fetchMessages() {
+    console.log("Trying to fetch messages!");
+    const toUserId = document.getElementById("sendMessageBar").getAttribute("data-user-id");
+    const chat = document.getElementById("userChat");
+
+    let url = `/get-messages/?to_user_id=${toUserId}`;
+    if (lastMessageTimestamp) {
+        url += `&timestamp=${encodeURIComponent(lastMessageTimestamp)}`;
+    }
+
+    fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            data.messages.forEach(msg => {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add(msg.sender == toUserId ? "received-message" : "sent-message");
+                messageDiv.textContent = msg.content;
+                chat.appendChild(messageDiv);
+                console.log("New message shown -> ", messageDiv);
+
+                lastMessageTimestamp = msg.timestamp; // Met à jour le dernier timestamp
+            });
+
+            scrollChatToBottom();
+        }
+    })
+    .catch(error => console.error("Erreur lors de la récupération des messages:", error));
 }

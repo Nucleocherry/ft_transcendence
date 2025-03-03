@@ -13,7 +13,6 @@
         <link rel="stylesheet" type="text/css" href="{% static 'web/css/style.css' %}">
         <script type="text/javascript"  src="{% static 'web/js/script.js' %}"></script>
         <script type="text/javascript"  src="{% static 'web/js/pong.js' %}"></script>
-		<script type="text/javascript" src="{% static 'web/js/chat.js' %}"></script>
 </head>
 
 <body>
@@ -22,14 +21,12 @@
     <!-- MAIN PAGE -->
     <div id="mainPage" class="mainPage">
 		
-		<div id="notif-box" class="show">
+		<div id="notif-box" class="hide">
 			<p id="notif-message">Nouvelle notification !</p>
 			<button onclick="hideNotif()">OK</button>
 		</div>
         <h1 class="mainTitle">TRANSCENDENCE</h1>
-		<button id="show-notif" onclick="showNotif('Tu as un nouveau message !')">Afficher une notif</button>
-
-        <button class="friendButton" onclick="scrollToFriendMenu()">
+        <button class="friendButton" onclick="unscrollToSettingMenu()">
             <span class="material-symbols-outlined">group_add</span>
         </button>
     
@@ -62,20 +59,32 @@
             <h2 id="p2-points" style="font-family: 'Poiret One';"></h2>
         </div>
 		<center><div id="GameMenu">
-			<button id="VsAi" onclick="activateAi()">
+			<span id="VsAi" onclick="activateAiGame()" class="GameOption">
 				<span class="material-symbols-outlined">smart_toy</span>
 				<span class="material-symbols-outlined">Vs Ai</span>
-			</button>
-			<button id="VsFriend" >
+			</span>
+			<span id="VsFriend" onclick="activateFriendMenu()" class="GameOption">
 				<span class="material-symbols-outlined">swords</span>
 				<span class="material-symbols-outlined">Vs Friend</span>
-			</button>
+			</span>
+			<span id="local" onclick="activateFriendMenu()" class="GameOption">
+				<span class="material-symbols-outlined">public_off</span>
+				<span class="material-symbols-outlined">Local</span>
+			</span>
+			<span id="online" onclick="ShowFriendList_game()" class="GameOption">
+				<span class="material-symbols-outlined">language</span>
+				<span class="material-symbols-outlined">Online</span>
+			</span>
 		</div></center>
+		<h1 id="FriendTitle" class="material-symbols-outlined" style="color: white; font-family: 'Poiret One', serif">Friend List</h1>
+		<div class="friendList">
+				<ul id = "friendList"></ul>
+		</div>
    		<canvas id= "TheGame" style="border:1px solid rgb(102, 90, 102);" class="TheGame"> </canvas>
 		<div id="winner">
 			<span class="material-symbols-outlined" style="scale: 2">trophy</span>
 			<span id="winText" class="material-symbols-outlined"></span>
-			<span id="returnButton" onclick="activateAi()" style="margin-top: 35%;">
+			<span id="returnButton" onclick="activateAiGame()" style="margin-top: 35%;">
 				<span class="material-symbols-outlined" >refresh</span>
 				<span style="   font-size: 35px; color: #f0f0f0; font-family: 'Poiret One'; " >Play again</span>
 			</span>
@@ -90,69 +99,121 @@
 
 
 <!-- HERE IS THE FRIEND MENU -->
-    <div id="friendMenu" class="friendMenu">
-        <h1>Friends</h1>
-        <input 
-            type="text" 
-            id="searchBar" 
-            placeholder="Rechercher un ami..." 
-            oninput="searchFriends()" 
-        />
-        <ul id="results"></ul>  <!-- Affichage des résultats de recherche -->
-
-
-
-
-		<h3>--Demande d'amis--</h3>
-
-		<ul id="friend-request-list">
-			<!-- Liste des amis affichée ici -->
-		</ul>
-
-
-    <ul id="results"></ul>  <!-- Affichage des résultats de recherche -->
-
-		<h3>---Liste d'amis---</h3>
-		<ul id="friend-list">
-			<!-- Liste des amis affichée ici -->
-		</ul>
-
-
-		<div id="userDetails" class="userDetails">
-			<button class="backButton" onclick="resetUserDetails()">
-				<span class="material-symbols-outlined">arrow_back</span>
-			</button>
+	<div id="friendMenu" class="friendMenu">
+			<h1 class="smallerTitle">Friends</h1>
+			<input 
+				type="text" 
+				id="searchBar" 
+				placeholder="Rechercher un ami..."
+				oninput="searchFriends()" 
+			/>
+			<ul id="results"></ul>  <!-- Affichage des résultats de recherche -->
 	
-			<h2 id="userTitle">Informations de l'utilisateur</h2>
 	
-			<p><strong>Nom d'utilisateur :</strong> <span id="userUsername"></span></p>
-			<p><strong>Online status :</strong> <span id="userStatus"></span></p>
 	
-			<!-- Bouton Ajouter un ami avec un attribut data pour stocker l'ID -->
-			<button id="addFriendButton" 
-					class="addFriendButton" 
-					data-user-id="" 
-					onclick="addFriendRequest()">
-					<p>Ajouter</p>
-					<span class="material-symbols-outlined icon-smaller">person_add</span>
-			</button>
+	
+			<h3 class="simpleText">Demande d'amis</h3>
+	
+			<ul id="friend-request-list">
+				<!-- Liste des amis affichée ici -->
+			</ul>
+	
+			<h3 class="simpleText">Liste d'amis</h3>
+			<ul id="friend-list">
+				<!-- Liste des amis affichée ici -->
+			</ul>
+	
+	
+			<div id="userDetails" class="userDetails">
+	
+				<button class="backButton" onclick="resetUserDetails()">
+					<span class="material-symbols-outlined">arrow_back</span>
+				</button>
+	
+				<h2><span id="userUsername" class="userName"></span></h2>
+				<div id="ifUnblocked">
+					<p><strong>Online status :</strong> <span id="userStatus"></span></p>
+					
+					<div class="userButtonBox">
+					<!-- Bouton Ajouter un ami avec un attribut data pour stocker l'ID -->
+					<button id="addFriendButton" 
+							class="addFriendButton" 
+							data-user-id="" 
+							onclick="addFriendRequest()">
+							<p>Ajouter</p>
+							<span class="material-symbols-outlined icon-smaller">person_add</span>
+					</button>
+	
+					<button id="statsButton" 
+							class="addFriendButton" 
+							data-user-id="" 
+							onclick="addFriendRequest()">
+							<p>Stats</p>
+							<span class="material-symbols-outlined icon-smaller">trophy</span>
+					</button>
+	
+					<button id="blockButton" 
+							class="blockButton" 
+							data-user-id="" 
+							onclick="blockUser()">
+							<p>Bloquer</p>
+							<span class="material-symbols-outlined icon-smaller">block</span>
+					</button>
+					</div>
+	
+	
+					<div id="ifFriend">
+						<button id="sendGameButton" 
+							class="sendGameButton" 
+							data-user-id="" 
+							onclick="addFriendRequest()">
+							<p>Jouer</p>
+						</button>
+						<div class="chat_zone">	
+							<div id="userChat" class="chat">
+							</div>
+							<input id="sendMessageBar" 
+								type="text" 
+								placeholder="Votre message..."
+								data-user-id="" 
+								oninput="searchFriends()" />
+						</div>
+					</div>
+					<div id="ifNotFriend">
+						<hr>
+						<h3 class="userName">Ajouter le joueur pour interagir</h3>
+					</div>
+	
+				</div>
+				
+				<div id="ifBlocked">
+					<div class="userButtonBox">
+						<button id="unblockButton" 
+							class="unblockButton" 
+							data-user-id="" 
+							onclick="blockUser()">
+							<p>Debloquer</p>
+							<span class="material-symbols-outlined icon-smaller">favorite</span>
+						</button>
+					</div>
+					<hr>
+				</div>
+			</div>
 		</div>
-    </div>
-
-
-
-
-    
-</div>
-
-    
-
-
-
-<!-- HERE IS THE SETTINGS MENU -->
+	
+	
+	
+	
+		
+	</div>
+	
+		
+	
+	
+	<!-- HERE IS THE SETTINGS MENU -->
     <div id="settingsMenu" class="settingsMenu">
         <h1>Settings</h1>
-        <p>Votre Username : {{ request.user.username }}</p>
+        <p id="username">Votre Username : {{ request.user.username }}</p>
         <a href="{% url 'logout' %}" id="logoutButton"><span class="material-symbols-outlined">logout</span></a>
     </div>
 
