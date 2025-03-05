@@ -42,8 +42,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			console.log("new message recieved");
 			fetchMessages();
 		}
-		else if (friendtrigger === 1 && data.type === "movement")
-			movep2( data);
+		else if (friendtrigger === 1)
+		{
+			if (data.type === "movement")
+				movep2(data);
+			else if (data.type === "ball_movement" && hostname == username)
+				move_remote_ball(data);
+		}
 
 	};
 });
@@ -99,7 +104,7 @@ function activateFriendMenu()
 	
 }
 
-function ChallengeFriend()
+function ChallengeFriend(_username)
 {
 	let	friendMenu = document.getElementsByClassName('friendList');
 	let friendTitle = document.getElementById('FriendTitle');
@@ -107,6 +112,7 @@ function ChallengeFriend()
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
 
+	username = _username;
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
 	TheGame.classList.add('active');
@@ -114,6 +120,14 @@ function ChallengeFriend()
 	winner.classList.remove('active');
 	friendtrigger = 1;
 	
+}
+
+function rePlay()
+{
+	if (aitrigger === 1)
+		activateAiGame();
+	else
+		ChallengeFriend(username);
 }
 
 function ShowFriendList_game()
@@ -146,13 +160,19 @@ function ShowFriendList_game()
 
     // Loop through friends and append them correctly
     for (let i = 0; i < friends.children.length; i++) {
+		const friendButton = document.createElement("button");
         let friendName = friends.children[i].textContent.trim(); // Get the name
 
         console.log(`Ajout d'un ami: ${friendName}`);
-
-        friendList.insertAdjacentHTML(
-            'beforeend',
-            `<button onclick="ChallengeFriend()">${friendName}</button><br>`
+		friendButton.onclick= function ()
+		{
+			ChallengeFriend(friendName);
+		};
+		friendButton.innerText = friendName;
+		friendList.appendChild(friendButton);
+		friendList.insertAdjacentHTML(
+            "beforeend",
+            "<br>"
         );
     }
 }
@@ -321,7 +341,7 @@ function fetchUsers(query = '') {
             }
         })
         .catch(error => {
-            console.error('Error fetching users:', error);""
+            console.error('Error fetching users:', error);
         });
 }
 

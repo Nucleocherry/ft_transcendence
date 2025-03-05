@@ -1,9 +1,13 @@
 /*------------Canvas and background setup---------*/
-var aitrigger = 0;
-var	friendtrigger = 0;
-
+let aitrigger = 0;
+let	friendtrigger = 0;
+let trigger = 0;
+let username;
 let p1, p2;
-function movep2( data)
+let ball;
+let hostname = "ye";
+
+function movep2(data)
 {
 	if (data.player_id != document.getElementById('username').innerText)
 	{
@@ -11,6 +15,12 @@ function movep2( data)
 	}
 }
 
+function move_remote_ball(data)
+{
+	trigger = data.trigger;
+	ball.x = data.ball_pos.x;
+	ball.y = data.ball_pos.y;
+}
 
 //--------------------------------------------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
@@ -36,31 +46,71 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 
-
 	function sendPlayerUpdate() {
 		if (window.mySocket.readyState === WebSocket.OPEN) {
-
-			const data = {
-				type: "movement",
-				player_id: document.getElementById('username').innerText,
-				position: { x: p1.x, y: p1.y },
-				target_group: "user_2",
-				timestamp: Date.now()
-			};
-	
-			//console.log("Sending WebSocket message:", JSON.stringify(data));
-			window.mySocket.send(JSON.stringify(data));
+			fetch(`/search_users/?q=${username}`)
+			.then(response => response.json())
+			.then(data => {
+				console.log("username : ", username, " data.users.username: ", data.users[0].username);
+				if (data.users && data.users[0].username === username)
+				{
+					console.log("user_id: ", data.users[0].id);
+					const sending_data = {
+						type: "movement",
+						player_id: document.getElementById('username').innerText,
+						position: {y: p1.y },
+						target_group: "user_" + data.users[0].id,
+						timestamp: Date.now()
+					};
+			
+					//console.log("Sending WebSocket message:", JSON.stringify(data));
+					window.mySocket.send(JSON.stringify(sending_data));
+				}
+			})
+			.catch( error => {
+						console.error('Error fetching users:', error);
+				}
+			)
 		} else {
 			console.warn("WebSocket not ready. State:", window.mySocket.readyState);
 		}
 	}
 
+	function sendBallUpdate()
+	{
+		if (window.mySocket.readyState === WebSocket.OPEN) {
+			fetch(`/search_users/?q=${username}`)
+			.then(response => response.json())
+			.then(data => {
+				if (data.users && data.users[0].username === username)
+				{
+					const sending_data = {
+						type: "ball_movement",
+						player_id: document.getElementById('username').innerText,
+						ball_pos: {x: ball.x , y: ball.y },
+						target_group: "user_" + data.users[0].id,
+						trigger: trigger,
+						timestamp: Date.now()
+					};
+			
+					//console.log("Sending WebSocket message:", JSON.stringify(data));
+					window.mySocket.send(JSON.stringify(sending_data));
+				}
+			})
+			.catch( error => {
+						console.error('Error fetching users:', error);
+				}
+			)
+		} else {
+			console.warn("WebSocket not ready. State:", window.mySocket.readyState);
+		}
+	}
 
 	
 	let width = 10;
 	let height = 30;
 	let maxBounceAngle = Math.PI / 3;
-	let speed = width / 4;
+	let speed = 10;
     // Le reste du code de ton jeu...
 	class Ball {
 		constructor(x, y, radius) {
@@ -96,34 +146,39 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	
 		moveBall(p1, p2) {
+
 			ctx.beginPath();
 			ctx.fillStyle = "black";
 			ctx.arc(this.x, this.y, this.radius + 1, 0, Math.PI * 2);
 			ctx.fill();
 			ctx.closePath();
-	
-			if (this.isPlayerHit(p1)) {
-			this.dx = speed * Math.cos(this.calculate_bounceAngle(p1));
-			if (this.dx < 0)
-				this.dx *= -1;
-			this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
-			} else if (this.isPlayerHit(p2)) {
-			this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
-			this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
-			} else if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height)
-			this.dy *= -1;
-			else if ((this.x <= width / 2 || this.x >= canvas.width - width / 2) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
-			if (this.x <= 25)
-				this.dx = -5; // Reset speed
-			else
-				this.dx = 5;
-			this.x = canvas.width / 2; // Reset ball to center
-			this.y = canvas.height / 2;
-			this.dy = 0;
-			trigger = 0;
+			if (hostname != username)
+			{
+					if (this.isPlayerHit(p1)) {
+					this.dx = speed * Math.cos(this.calculate_bounceAngle(p1));
+					if (this.dx < 0)
+						this.dx *= -1;
+					this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
+					} else if (this.isPlayerHit(p2)) {
+					this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
+					this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
+					} else if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height)
+					this.dy *= -1;
+					else if ((this.x <= width / 2 || this.x >= canvas.width - width / 2) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
+					if (this.x <= 25)
+						this.dx = -5; // Reset speed
+					else
+						this.dx = 5;
+					this.x = canvas.width / 2; // Reset ball to center
+					this.y = canvas.height / 2;
+					this.dy = 0;
+					trigger = 0;
+					}
+					this.x += this.dx;
+					this.y += this.dy;
+					if (friendtrigger === 1)
+						sendBallUpdate();
 			}
-			this.x += this.dx;
-			this.y += this.dy;
 			this.drawBall();
 		}
 		}
@@ -133,11 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	p1 = new Player(10, canvas.height/2);
 	p2 = new Player(canvas.width - (width * 2), canvas.height/2);
 
-	let ball = new Ball(canvas.width / 2, canvas.height / 2, 5);
+	ball = new Ball(canvas.width / 2, canvas.height / 2, 5);
 
 	/*----------------------------------------------*/
 
-	let trigger = 0;
 
 	// Track key states
 	const keys = {};
@@ -164,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (friendtrigger === 1)
 				sendPlayerUpdate();
 		}
-		if (keys[" "] && aitrigger === 1)
+		if (keys[" "] && (aitrigger === 1 || friendtrigger === 1))
 			trigger = 1;
 		if (aitrigger === 1 && ball.x >= canvas.width / 2 && ball.dx > 0 && trigger === 1)
 			aiBot();
