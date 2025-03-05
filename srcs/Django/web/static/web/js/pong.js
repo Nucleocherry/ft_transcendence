@@ -6,6 +6,11 @@ let username;
 let p1, p2;
 let ball;
 let hostname = "ye";
+let width = 10;
+let height = 30;
+let maxBounceAngle = Math.PI / 3;
+let speed = 1;
+
 
 function movep2(data)
 {
@@ -18,14 +23,15 @@ function movep2(data)
 function move_remote_ball(data)
 {
 	trigger = data.trigger;
-	ball.x = data.ball_pos.x;
-	ball.y = data.ball_pos.y;
+	if (hostname === username)
+		ball.dx = -data.ball_dir.x;
+	ball.dy = data.ball_dir.y;
 }
 
 //--------------------------------------------------------------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-	const canvas = document.getElementById("TheGame");
-	const ctx = canvas.getContext("2d");
+	const canvas =  document.getElementById("TheGame");;
+	const ctx = canvas.getContext("2d");;
 	class Player {
 		constructor(x, y) {
 			this.x = x;
@@ -48,19 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	function sendPlayerUpdate() {
 		if (window.mySocket.readyState === WebSocket.OPEN) {
-			fetch(`/search_users/?q=${username}`)
+			fetch(`/search_users/?q=${username}`) // make a global setup
 			.then(response => response.json())
 			.then(data => {
-				console.log("username : ", username, " data.users.username: ", data.users[0].username);
+				//console.log("username : ", username, " data.users.username: ", data.users[0].username);
 				if (data.users && data.users[0].username === username)
 				{
-					console.log("user_id: ", data.users[0].id);
+					//console.log("user_id: ", data.users[0].id);
 					const sending_data = {
 						type: "movement",
 						player_id: document.getElementById('username').innerText,
 						position: {y: p1.y },
 						target_group: "user_" + data.users[0].id,
-						timestamp: Date.now()
 					};
 			
 					//console.log("Sending WebSocket message:", JSON.stringify(data));
@@ -79,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	function sendBallUpdate()
 	{
 		if (window.mySocket.readyState === WebSocket.OPEN) {
-			fetch(`/search_users/?q=${username}`)
+			fetch(`/search_users/?q=${username}`)// make a global setup
 			.then(response => response.json())
 			.then(data => {
 				if (data.users && data.users[0].username === username)
@@ -87,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
 					const sending_data = {
 						type: "ball_movement",
 						player_id: document.getElementById('username').innerText,
-						ball_pos: {x: ball.x , y: ball.y },
+						ball_dir: {x: ball.dx , y: ball.dy },
+						ball_pos: {x: ball.x, y: ball.y},
 						target_group: "user_" + data.users[0].id,
 						trigger: trigger,
-						timestamp: Date.now()
 					};
 			
 					//console.log("Sending WebSocket message:", JSON.stringify(data));
@@ -107,10 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 
 	
-	let width = 10;
-	let height = 30;
-	let maxBounceAngle = Math.PI / 3;
-	let speed = 10;
+
     // Le reste du code de ton jeu...
 	class Ball {
 		constructor(x, y, radius) {
@@ -118,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			this.y = y;
 			this.radius = radius;
 			this.diameter = radius * 2;
-			this.dx = 5;
+			this.dx = 1;
 			this.dy = 0;
 		}
 	
@@ -146,41 +148,50 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	
 		moveBall(p1, p2) {
-
-			ctx.beginPath();
-			ctx.fillStyle = "black";
-			ctx.arc(this.x, this.y, this.radius + 1, 0, Math.PI * 2);
-			ctx.fill();
-			ctx.closePath();
-			if (hostname != username)
-			{
-					if (this.isPlayerHit(p1)) {
-					this.dx = speed * Math.cos(this.calculate_bounceAngle(p1));
-					if (this.dx < 0)
-						this.dx *= -1;
-					this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
-					} else if (this.isPlayerHit(p2)) {
-					this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
-					this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
-					} else if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height)
-					this.dy *= -1;
-					else if ((this.x <= width / 2 || this.x >= canvas.width - width / 2) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
-					if (this.x <= 25)
-						this.dx = -5; // Reset speed
-					else
-						this.dx = 5;
-					this.x = canvas.width / 2; // Reset ball to center
-					this.y = canvas.height / 2;
-					this.dy = 0;
-					trigger = 0;
+				ctx.beginPath();
+				ctx.fillStyle = "black";
+				ctx.arc(this.x, this.y, this.radius + 1, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.closePath();
+				if (this.isPlayerHit(p1)) {
+						this.dx = speed * Math.cos(this.calculate_bounceAngle(p1));
+						if (this.dx < 0)
+							this.dx *= -1;
+						this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
 					}
-					this.x += this.dx;
-					this.y += this.dy;
-					if (friendtrigger === 1)
-						sendBallUpdate();
+					else if (this.isPlayerHit(p2)) {
+						this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
+						this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
+					}
+				if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height)
+					{
+						this.dy *= -1;
+					}
+				if ((this.x <= width / 2 || this.x >= canvas.width - width / 2) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
+						if (this.x <= width / 2 )
+						{
+							if (p2.points < 10)
+								p2.points++;
+							this.dx = -1; // Reset speed
+						}
+						else
+						{
+							if (p1.points < 10)
+								p1.points++;
+							this.dx = 1;
+						}
+
+						this.x = canvas.width / 2; // Reset ball to center
+						this.y = canvas.height / 2;
+						this.dy = 0;
+						trigger = 0;
+						
+					}
+				this.x += this.dx;
+				this.y += this.dy;
+
+				this.drawBall();
 			}
-			this.drawBall();
-		}
 		}
 	
 
@@ -209,17 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
 	function movement() {
 	
 		if (keys["z"] || keys["w"]) {
-			p1.movePlayer(-(speed + 5));
+			p1.movePlayer(-(speed));
 			if (friendtrigger === 1) 
 				sendPlayerUpdate();
 		}
 		if (keys["s"]) {
-			p1.movePlayer(speed + 5);
+			p1.movePlayer(speed);
 			if (friendtrigger === 1)
 				sendPlayerUpdate();
 		}
 		if (keys[" "] && (aitrigger === 1 || friendtrigger === 1))
+		{
 			trigger = 1;
+			sendBallUpdate();
+		}
 		if (aitrigger === 1 && ball.x >= canvas.width / 2 && ball.dx > 0 && trigger === 1)
 			aiBot();
 	}
@@ -254,13 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (is_in_bottom === 0)
 			movement();
 		if (trigger === 1)
-			ball.moveBall(p1, p2);
+				ball.moveBall(p1, p2);
 		p1.drawPlayer();
 		p2.drawPlayer();
-		if (ball.x <= width/2 && p2.points < 10)
-			p2.points++;
-		if (ball.x >= canvas.width - width/2 && p1.points < 10)
-			p1.points += 1;
 		if (p1.points === 10 || p2.points == 10)
 		{
 			let TheGame = document.getElementById('TheGame');

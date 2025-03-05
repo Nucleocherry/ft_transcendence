@@ -20,33 +20,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fermeture et tentative de reconnexion
     window.mySocket.onclose = function (event) {
-        console.log("⚠️  dans 3 secondes...:", event);
+        console.log("⚠️Websocket déconnecté , reconnexion dans 3 secondes...:", event);
         setTimeout(() => {
             window.mySocket = new WebSocket(url); // Reconnexion
         }, 3000);
     };
 
 	window.mySocket.onmessage = function(event) {
-		console.log("📩 WebSocket message reçu:", event.data);
+		//console.log("📩 WebSocket message reçu:", event.data);
 	
 		const data = JSON.parse(event.data);
-		console.log("📩 Données reçues:", data);
+		//console.log("📩 Données reçues:", data);
 	
 		if (data.type === "update_lists") {
-			console.log("🔄 Mise à jour de la liste d'amis !");
+			//console.log("🔄 Mise à jour de la liste d'amis !");
 			showFriendList();
 			showFriendRequestList();
 			showNotif(data.message)
 		}
 		else if (data.type === "update_messages") {
-			console.log("new message recieved");
+			//console.log("new message recieved");
 			fetchMessages();
 		}
 		else if (friendtrigger === 1)
 		{
 			if (data.type === "movement")
 				movep2(data);
-			else if (data.type === "ball_movement" && hostname == username)
+			else if (data.type === "ball_movement")
 				move_remote_ball(data);
 		}
 

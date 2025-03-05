@@ -893,7 +893,7 @@ html, body {
 	transition: transform 0.5s ease, opacity 0.5s ease;/*  Animation fluide*/
 	transform: scale(1.5);
 	width: 80vw;
-	max-width: 800px;
+	max-width: 1000px;
 	height: 60vw;
 	max-height: 500px;
 	position: absolute;
