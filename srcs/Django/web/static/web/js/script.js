@@ -46,8 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		{
 			if (data.type === "movement")
 				movep2(data);
-			else if (data.type === "ball_movement")
+			else if (data.type === "ball_movement" && hostname === username)
+			{
+				clienttrigger = 1;
 				move_remote_ball(data);
+			}
 		}
 
 	};
@@ -119,7 +122,12 @@ function ChallengeFriend(_username)
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
 	friendtrigger = 1;
-	
+	fetch(`/search_users/?q=${username}`) // make a global setup
+	.then(response => response.json())
+	.then(data => {
+		if (data.users && data.users[0].username === username)
+			user_id = data.users[0].id;
+	})
 }
 
 function rePlay()
@@ -162,8 +170,6 @@ function ShowFriendList_game()
     for (let i = 0; i < friends.children.length; i++) {
 		const friendButton = document.createElement("button");
         let friendName = friends.children[i].textContent.trim(); // Get the name
-
-        console.log(`Ajout d'un ami: ${friendName}`);
 		friendButton.onclick= function ()
 		{
 			ChallengeFriend(friendName);
