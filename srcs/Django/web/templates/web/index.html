@@ -80,15 +80,22 @@
 		<div class="friendList">
 				<ul id = "friendList"></ul>
 		</div>
+
    		<canvas id= "TheGame" style="border:1px solid rgb(102, 90, 102);" class="TheGame"> </canvas>
+		<button id="ReturnButton" class="material-symbols-outlined" onclick="returnToPreviousMenu()">arrow_backReturn</button>
+		<div id="GameInvite">
+			<button class="material-symbols-outlined" id="accept" onclick="acceptGameInvite()" ><span>check</span><span>Accept</span></button>
+			<button class="material-symbols-outlined" id="decline" onclick="declineGameInvite()"><span>close</span><span>Decline</span></button>
+		</div>
+		<span class="material-symbols-outlined" id="loading">Waiting for p2 to accept...</span>
 		<div id="winner">
 			<span class="material-symbols-outlined" style="scale: 2">trophy</span>
 			<span id="winText" class="material-symbols-outlined"></span>
-			<span id="returnButton" onclick="rePlay()" style="margin-top: 35%;">
+			<span class="returnButton" onclick="rePlay()" style="margin-top: 35%;">
 				<span class="material-symbols-outlined" >refresh</span>
 				<span style="   font-size: 35px; color: #f0f0f0; font-family: 'Poiret One'; " >Play again</span>
 			</span>
-			<span id="returnButton" onclick="returnToMenu()" style="margin-top: 60%;">
+			<span class="returnButton" onclick="returnToMenu()" style="margin-top: 60%;">
 				<span class="material-symbols-outlined" >arrow_back</span>
 				<span style="   font-size: 35px; color: #f0f0f0; font-family: 'Poiret One';" >Return to menu</span>
 			</span>
@@ -214,6 +221,11 @@
     <div id="settingsMenu" class="settingsMenu">
         <h1>Settings</h1>
         <p id="username">Votre Username : {{ request.user.username }}</p>
+		<div id="Stats">
+			<h1 class="material-symbols-outlined">Stats</h1>
+			<p id="Victory">Victories: {{ request.user.victory  }} </p>
+			<p id="Losses">Losses: {{ request.user.losses  }}</p>
+		</div>
         <a href="{% url 'logout' %}" id="logoutButton"><span class="material-symbols-outlined">logout</span></a>
     </div>
 

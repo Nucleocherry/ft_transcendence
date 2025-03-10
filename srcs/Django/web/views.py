@@ -442,3 +442,29 @@ def getMessages(request):
             return JsonResponse({"success": False, "message": "Utilisateur introuvable."}, status=404)
 
     return JsonResponse({"success": False, "message": "Méthode non autorisée."}, status=405)
+
+
+@login_required
+def increment_victory(request):
+    if request.method == "POST":
+        try:
+            user = request.user
+            user.victory += 1
+            user.save()
+            return JsonResponse({"status": "success", "victory": user.victory})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "error", "message": "Invalid Resquest"}, satus=400)
+
+
+@login_required
+def increment_losses(request):
+    if request.method == "POST":
+        try:
+            user = request.user
+            user.losses += 1
+            user.save()
+            return JsonResponse({"status": "success", "losses": user.losses})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "error", "message": "Invalid Resquest"}, satus=400)

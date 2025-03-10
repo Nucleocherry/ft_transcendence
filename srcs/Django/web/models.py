@@ -59,6 +59,7 @@ class Utilisateur(AbstractUser):
             models.Q(sender=self, receiver=other_user) |
             models.Q(sender=other_user, receiver=self)
         ).order_by("timestamp")
+    
 
 class FriendRequest(models.Model):
     STATUS_CHOICES = [

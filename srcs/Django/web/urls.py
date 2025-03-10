@@ -25,4 +25,6 @@ urlpatterns = [
     path('send-message/', views.sendMessage, name='send_message'),
     path('get-messages/', views.getMessages, name='get_messages'),
 
+	path('increment_victory/', views.increment_victory, name='increment_victory'),
+	path('increment_losses/', views.increment_losses, name='increment_losses'),
 ]

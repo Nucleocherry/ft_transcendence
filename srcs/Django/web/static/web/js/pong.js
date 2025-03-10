@@ -3,24 +3,17 @@ let aitrigger = 0;//trigger for ai game mode
 let	friendtrigger = 0;//trigger for online game mode
 let clienttrigger = 0;
 let trigger = 0;
-let username;
+let p1_username;
+let p2_username;
 let user_id;
 let p1, p2;
 let ball;
-let hostname = "ye";
+let hostname = "      ";
 let width = 10;
 let height = 30;
 let maxBounceAngle = Math.PI / 3;
 let speed = 1;
 let refresh_rate = 10
-
-function movep2(data)
-{
-	if (data.player_id != username)
-	{
-		p2.y = data.position.y;
-	}
-}
 
 /*------------CLIENT-PLAYER-MOVEMENT----------------------------------------*/
 function move_remote_ball(data)
@@ -31,11 +24,11 @@ function move_remote_ball(data)
 	ball.x += ball.dx;
 	ball.y = data.ball.y;
 	clienttrigger = 0;
-	console.log("username : ", username, " hostname ", hostname, "trigger: ", trigger, "clienttrigger: ", clienttrigger, "friendtrigger: ", friendtrigger);
-	if (p1.points != data.points.p1)
-		p1.points = data.points.p1;
-	if (p2.points != data.points.p2)
-		p2.points = data.points.p2;
+	console.log("p2_username : ", p2_username, " hostname ", hostname, "trigger: ", trigger, "clienttrigger: ", clienttrigger, "friendtrigger: ", friendtrigger);
+	if (p2.points != data.points.p1)// les cotés sont inversés car de son point de vue le user est tjrs le p1
+		p2.points = data.points.p1;
+	if (p1.points != data.points.p2)// les cotés sont inversés car de son point de vue le user est tjrs le p1
+		p1.points = data.points.p2;
 
 }
 /*----------END-CLIENT-PLAYER-MOVEMENT-------------------------------------*/
@@ -43,12 +36,13 @@ function move_remote_ball(data)
 document.addEventListener('DOMContentLoaded', () => {
 	const canvas =  document.getElementById("TheGame");
 	const ctx = canvas.getContext("2d");
+	p1_username = document.getElementById('username').innerText.replace("Votre Username : ", '');
 /*----------------------END-SETUP--------------------------------------------------*/
 	class Player {
 		constructor(x, y) {
 			this.x = x;
 			this.y = y;
-			this.points = 0;
+			this.points = 9;
 		}
 
 		movePlayer(y) {
@@ -108,14 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
 					if (this.dx < 0)
 						this.dx *= -1;
 					this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
-				if (hostname != username)
+				if (hostname != p2_username)
 					sendBallUpdate();
 
 			}
 				else if (this.isPlayerHit(p2)) {
 					this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
 					this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
-					if (hostname != username)
+					if (hostname != p2_username)
 						sendBallUpdate();
 
 			}
@@ -141,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					this.y = canvas.height / 2;
 					this.dy = 0;
 					trigger = 0;
-					if (hostname != username)
+					if (hostname != p2_username)
 						sendBallUpdate();		
 				}
 			this.x += this.dx;
@@ -180,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (friendtrigger === 1)
 				sendPlayerUpdate();
 		}
-		if (keys[" "] && (aitrigger === 1 || (friendtrigger === 1 && username != hostname)) && trigger === 0)
+		if (keys[" "] && (aitrigger === 1 || (friendtrigger === 1 && p2_username != hostname)) && trigger === 0)
 		{
 			trigger = 1;
 			sendBallUpdate();
@@ -209,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (p1.points === 10)
 			winText.innerText += "Player one won !";
 		else
-		winText.innerText += "Player two won !";
+			winText.innerText += "Player two won !";
 		winner.classList.add('active');
 		ball.x = canvas.width / 2;
 		ball.y = canvas.height / 2;
@@ -218,6 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		p2.points = 0;
 		p1.points = 0;
 		trigger = 0;
+		aitrigger = 0;
+		friendtrigger = 0;
+		user_id = "";
+		hostname = "       ";
+		p2_username = "";
 	}
 
 	function drawFrame() {
@@ -230,12 +229,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		if (is_in_bottom === 0)
 			movement();
-		if (trigger === 1 && (aitrigger === 1 || (friendtrigger === 1 && hostname != username)))// to change on setup
+		if (trigger === 1 && (aitrigger === 1 || (friendtrigger === 1 && hostname != p2_username)))// to change on setup
 				ball.moveBall(p1, p2);
-		if (trigger === 1 && friendtrigger === 1 && hostname === username && clienttrigger === 0)
+		if (trigger === 1 && friendtrigger === 1 && hostname === p2_username && clienttrigger === 0)
 			ball.moveBall(p1, p2);
 		if (p1.points === 10 || p2.points == 10)
+		{
+			if (p1.points === 10 && friendtrigger === 1)
+			{
+				fetch('/increment_victory/', {
+					method: "POST",
+					headers: {
+						"X-CSRFToken": getCSRFToken(),
+						"Content-Type": "application/json"
+					}
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === "success")
+					{
+						document.getElementById("Victory").innerText = "Victories : " + data.victory;
+					}
+					else
+						console.error("Error updating victory: ", data.message)
+				})
+				.catch(error => console.error("Request failed: ", error));
+			}
+			if (p2.points === 10 && friendtrigger === 1)
+			{
+				fetch('/increment_losses/', {
+					method: "POST",
+					headers: {
+						"X-CSRFToken": getCSRFToken(),
+						"Content-Type": "application/json"
+					}
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.status === "success")
+					{
+						document.getElementById("Losses").innerText = "Losses : " + data.losses;
+					}
+					else
+						console.error("Error updating Losses: ", data.message)
+				})
+				.catch(error => console.error("Request failed: ", error));
+			}
 			reInitialize();
+		}
 		document.getElementById("p1-points").innerText = p1.points;
 		document.getElementById("p2-points").innerText = p2.points;
 
@@ -247,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (window.mySocket.readyState === WebSocket.OPEN) {
 			const sending_data = {
 				type: "movement",
-				player_id: document.getElementById('username').innerText,
+				player_id: p1_username,
 				position: {y: p1.y },
 				target_group: "user_" + user_id,
 			};
@@ -261,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (window.mySocket.readyState === WebSocket.OPEN) {
 			const sending_data = {
 				type: "ball_movement",
-				player_id: document.getElementById('username').innerText,
+				player_id: p1_username,
 				ball: {x: ball.x, y: ball.y, dx: ball.dx, dy: ball.dy},
 				points: {p1: p1.points, p2: p2.points},
 				target_group: "user_" + user_id,

@@ -932,7 +932,7 @@ html, body {
 	transform: scale(1);
 }
 
-#returnButton
+.returnButton
 {
 	display: inline-flex;
 	align-items: center;
@@ -944,13 +944,61 @@ html, body {
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
 }
 
-#returnButton:hover
+.returnButton:hover, #ReturnButton:hover
 {
 	background-color: #cccccc5a;
 	transform: scale(1.05);
 }
 
+#ReturnButton
+{
+	cursor: pointer;
+	border: none;
+	border-radius: 5px;
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+	background-color: transparent;
+	left: 10%;
+	bottom:10%;
+}
 
+
+#GameInvite
+{
+	display: none;
+	align-items: center;
+	transition: transform 0.5s ease, opacity 0.5s ease; 
+}
+
+#GameInvite.active, #loading.active
+{
+	display: inline-flex;
+}
+
+#accept, #decline
+{
+	background-color: transparent;
+	cursor: pointer;
+	flex-wrap: wrap;
+	border: none;
+	border-radius: 5px;
+}
+
+#accept:hover
+{
+	background-color: #00ff1e36;
+	transform: scale(1.05);
+}
+
+#decline:hover
+{
+	background-color: #ff000045;
+	transform: scale(1.05);
+}
+
+#loading
+{
+	display:none;
+}
 /*end of game css SETUP*/
 
 

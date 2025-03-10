@@ -1,3 +1,5 @@
+let MenuTrigger = 0;
+
 /*------------------------ SETUP WEBSOCKET ------------------------- */
 
 
@@ -45,14 +47,30 @@ document.addEventListener("DOMContentLoaded", () => {
 		else if (friendtrigger === 1)
 		{
 			if (data.type === "movement")
-				movep2(data);
-			else if (data.type === "ball_movement" && hostname === username)
+				p2.y = data.position.y;
+			else if (data.type === "ball_movement" && hostname === p2_username)
 			{
 				clienttrigger = 1;
 				move_remote_ball(data);
 			}
 		}
+		else if (data.type === "game_invite")
+			handleGameInvite(data);
+		else if (data.type === "accept")
+		{
+			let loading = document.getElementById("loading");
+			loading.classList.remove("active");
+			activateFriendGame()
+		}
+		else if (data.type == "decline")
+		{
+			let loading = document.getElementById("loading");
+			loading.classList.remove("active");
+			user_id = "";
+			p2_username = "";
+			ShowFriendList_game();
 
+		}
 	};
 });
 
@@ -79,6 +97,35 @@ function scrollToMainPage()
     }
 }
 /*----------------GAME STUFF--------------*/ 
+
+function returnToPreviousMenu()
+{
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
+	let	friendMenu = document.getElementsByClassName('friendList');
+	let friendTitle = document.getElementById('FriendTitle');
+
+
+
+	if (MenuTrigger === 1)
+	{
+		MenuTrigger = 0;
+		VsAi.classList.remove('inactive');
+		VsFriend.classList.remove('inactive');
+		local.classList.remove('active');
+		online.classList.remove('active');
+	}
+	else if (MenuTrigger === 2)
+	{
+		MenuTrigger = 1;
+		local.classList.add('active');
+		online.classList.add('active');
+		friendTitle.classList.remove('active');
+		friendMenu[0].classList.remove('active');
+	}
+}  
 function activateAiGame()
 {
 	let GameMenu = document.getElementById('GameMenu');
@@ -100,6 +147,7 @@ function activateFriendMenu()
 	let online = document.getElementById('online');
 	let local = document.getElementById('local');
 
+	MenuTrigger = 1;
 	VsAi.classList.add('inactive');
 	VsFriend.classList.add('inactive');
 	local.classList.add('active');
@@ -107,7 +155,7 @@ function activateFriendMenu()
 	
 }
 
-function ChallengeFriend(_username)
+function activateFriendGame()
 {
 	let	friendMenu = document.getElementsByClassName('friendList');
 	let friendTitle = document.getElementById('FriendTitle');
@@ -115,19 +163,107 @@ function ChallengeFriend(_username)
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
 
-	username = _username;
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
 	TheGame.classList.add('active');
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
 	friendtrigger = 1;
-	fetch(`/search_users/?q=${username}`) // make a global setup
+}
+
+function handleGameInvite(_data)
+{
+	let GameInvite = document.getElementById('GameInvite');
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
+	let	friendMenu = document.getElementsByClassName('friendList');
+	let friendTitle = document.getElementById('FriendTitle');
+
+	VsAi.classList.add('inactive');
+	VsFriend.classList.add('inactive');
+	local.classList.remove('active');
+	online.classList.remove('active');
+	friendTitle.classList.remove('active');
+	friendMenu[0].classList.remove('active');
+	GameInvite.classList.add('active');
+	console.log("_data.hostname:", _data.hostname);
+	fetch(`/search_users/?q=${_data.hostname}`) // make a global setup
 	.then(response => response.json())
 	.then(data => {
-		if (data.users && data.users[0].username === username)
+		if (data.users && data.users[0].username === _data.hostname)
 			user_id = data.users[0].id;
 	})
+	hostname = _data.hostname;
+}
+
+function acceptGameInvite()
+{
+	let GameInvite = document.getElementById('GameInvite');
+
+	GameInvite.classList.remove('active');
+	if (window.mySocket.readyState === WebSocket.OPEN) {
+		const sending_data = {
+			type: "accept",
+			player_id: p1_username,
+			target_group: "user_" + user_id,
+		}
+		window.mySocket.send(JSON.stringify(sending_data));
+	}
+	p2_username = hostname;
+	activateFriendGame();
+}
+
+function declineGameInvite()
+{
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
+	let GameInvite = document.getElementById('GameInvite');
+
+	local.classList.add('active');
+	online.classList.add('active');
+	GameInvite.classList.remove('active');
+	if (window.mySocket.readyState === WebSocket.OPEN) {
+		const sending_data = {
+			type: "decline",
+			player_id: p1_username,
+			target_group: "user_" + user_id,
+		}
+		window.mySocket.send(JSON.stringify(sending_data));
+	}
+	hostname = "       ";
+	user_id = "";
+}
+
+function ChallengeFriend(_p2_username)
+{
+	let loading = document.getElementById("loading");
+	let	friendMenu = document.getElementsByClassName('friendList');
+	let friendTitle = document.getElementById('FriendTitle');
+
+	friendTitle.classList.remove('active');
+	friendMenu[0].classList.remove('active');
+	console.log("_p2_username: ", _p2_username);
+	fetch(`/search_users/?q=${_p2_username}`) // make a global setup
+	.then(response => response.json())
+	.then(data => {
+		if (data.users && data.users[0].username === _p2_username)
+		{
+			user_id = data.users[0].id;
+			if (window.mySocket.readyState === WebSocket.OPEN) {
+				const sending_data = {
+					type: "game_invite",
+					hostname: p1_username,
+					target_group: "user_" + user_id,
+				}
+				window.mySocket.send(JSON.stringify(sending_data));
+			}
+		}
+	})
+
+	p2_username = _p2_username;
+	loading.classList.add("active");
 }
 
 function rePlay()
@@ -135,7 +271,7 @@ function rePlay()
 	if (aitrigger === 1)
 		activateAiGame();
 	else
-		ChallengeFriend(username);
+		ChallengeFriend(p2_username);
 }
 
 function ShowFriendList_game()
@@ -149,6 +285,7 @@ function ShowFriendList_game()
 	let friends = document.getElementById('friend-list');
 	let friendTitle = document.getElementById('FriendTitle');
 
+	MenuTrigger = 2;
 	VsAi.classList.add('inactive');
 	VsFriend.classList.add('inactive');
 	local.classList.remove('active');
@@ -316,10 +453,6 @@ function scrollToSettingsMenu(activate) {
         settingsMenu.classList.remove('active');
     }
 }
-
-
-
-
 
 function fetchUsers(query = '') {
     fetch(`/search_users/?q=${query}`)
