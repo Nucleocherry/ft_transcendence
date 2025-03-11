@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth import login as auth_login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password, check_password
-from django.db.models import Q
+from django.db.models import Q, F, FloatField, ExpressionWrapper
 from django.utils.dateparse import parse_datetime
 
 from channels.layers import get_channel_layer
@@ -216,16 +216,30 @@ def connexion(request):
 
 
 def search_users(request):
-    query = request.GET.get('q', '')  # Récupère le paramètre 'q' de la requête
+    query = request.GET.get('q', '')
+    current_user = request.user
+
+    # Get IDs of users that blocked the current user
+    blocked_by_ids = FriendRequest.objects.filter(
+        to_user=current_user,
+        status='blocked'
+    ).values_list('from_user_id', flat=True)
+
     if query:
         users = Utilisateur.objects.filter(username__icontains=query)
     else:
         users = Utilisateur.objects.all()
 
-    # Ajoute l'ID des utilisateurs dans la réponse
-    user_data = [{"id": user.id, "username": user.username, "is_online": user.is_online} for user in users]
+    # Exclude the current user and any user that blocked the current user
+    users = users.exclude(id=current_user.id).exclude(id__in=blocked_by_ids)
+
+    user_data = [
+        {"id": user.id, "username": user.username, "is_online": user.is_online}
+        for user in users
+    ]
     
     return JsonResponse({"users": user_data})
+
 
 
 
@@ -385,6 +399,50 @@ def block_user(request):
         {"success": False, "message": "Méthode non autorisée."}, status=405
     )
 
+@login_required
+def unblock_user(request):
+    if request.method == "POST":
+        to_user_id = request.POST.get("to_user_id")
+        if not to_user_id:
+            return JsonResponse(
+                {"success": False, "message": "ID utilisateur manquant."}, status=400
+            )
+
+        from_user = request.user
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+            if from_user == to_user:
+                return JsonResponse(
+                    {"success": False, "message": "Vous ne pouvez pas vous bloquer vous-même."},
+                    status=400,
+                )
+
+            # Supprimer une éventuelle relation d'amitié existante uniquement si le statut est "blocked"
+            FriendRequest.objects.filter(
+                Q(from_user=from_user, to_user=to_user),
+                status="blocked"
+            ).delete()
+
+            # Vérifier si l'utilisateur est déjà bloqué
+            if FriendRequest.objects.filter(from_user=from_user, to_user=to_user).exists():
+                return JsonResponse(
+                    {"success": False, "message": "Utilisateur déjà bloqué."}, status=400
+                )
+
+            return JsonResponse(
+                {"success": True, "message": "Utilisateur bloqué avec succès."}
+            )
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Utilisateur introuvable."}, status=404
+            )
+
+    return JsonResponse(
+        {"success": False, "message": "Méthode non autorisée."}, status=405
+    )
+
 
 @login_required
 def is_user_blocked(request):
@@ -451,13 +509,13 @@ def is_user_friend(request):
 
 @login_required
 def showFriendList(request):
-    user = request.user  # Utilisateur actuellement connecté
-    friends = user.get_friends()  # Appel de la méthode sur l'instance de l'utilisateur
+	user = request.user  # Utilisateur actuellement connecté
+	friends = user.get_friends()  # Appel de la méthode sur l'instance de l'utilisateur
 
-    # Formater la liste des amis pour la réponse JSON
-    friends_data = [{"id": friend.id, "username": friend.username} for friend in friends]
+	# Formater la liste des amis pour la réponse JSON
+	friends_data = [{"id": friend.id, "username": friend.username} for friend in friends]
 
-    return JsonResponse({"success": True, "friends": friends_data})
+	return JsonResponse({"success": True, "friends": friends_data})
 
 @login_required
 def showFriendRequestList(request):
@@ -600,3 +658,36 @@ def increment_losses(request):
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
     return JsonResponse({"status": "error", "message": "Invalid Resquest"}, satus=400)
+
+
+@login_required
+def get_player_stats(request):
+    user_id = request.GET.get("user_id")  # Récupérer l'ID depuis la requête
+    
+    if not user_id:
+        return JsonResponse({"success": False, "error": "User ID is required"}, status=400)
+    
+    try:
+        user = Utilisateur.objects.get(id=user_id)  # Récupérer l'utilisateur par ID
+    except ObjectDoesNotExist:
+        return JsonResponse({"success": False, "error": "User not found"}, status=404)
+    
+    # Calcul du ratio victoire/défaite en évitant la division par zéro
+    user_ratio = user.victory / (user.losses + 1)
+    
+    # Récupérer tous les utilisateurs avec leur ratio
+    players = Utilisateur.objects.annotate(
+        ratio=ExpressionWrapper(F('victory') * 1.0 / (F('losses') + 1), output_field=FloatField())
+    ).order_by('-ratio', '-victory')
+    
+    # Déterminer le classement de l'utilisateur
+    ranked_players = list(players)
+    rank = next((i + 1 for i, p in enumerate(ranked_players) if p.id == user.id), None)
+    
+    return JsonResponse({
+        "success": True,
+        "user_id": user.id,
+        "victories": user.victory,
+        "losses": user.losses,
+        "rank": rank
+    })
