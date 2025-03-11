@@ -77,11 +77,14 @@ function activateAiGame()
 	let	TheGame = document.getElementById('TheGame');
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
+	let returnButton = document.getElementById('ReturnButton');
+
 
 	GameMenu.classList.add('inactive');
 	TheGame.classList.add('active');
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
+	returnButton.classList.remove('active')
 	aitrigger = 1;
 }
 
@@ -91,12 +94,13 @@ function activateFriendMenu()
 	let VsFriend = document.getElementById('VsFriend');
 	let online = document.getElementById('online');
 	let local = document.getElementById('local');
+	let returnButton = document.getElementById('ReturnButton');
 
 	VsAi.classList.add('inactive');
 	VsFriend.classList.add('inactive');
 	local.classList.add('active');
 	online.classList.add('active');
-	
+	returnButton.classList.add('active')
 }
 
 function ChallengeFriend()
@@ -106,12 +110,15 @@ function ChallengeFriend()
 	let	TheGame = document.getElementById('TheGame');
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
+	let returnButton = document.getElementById('ReturnButton');
+
 
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
 	TheGame.classList.add('active');
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
+	returnButton.classList.remove('active')
 	friendtrigger = 1;
 	
 }

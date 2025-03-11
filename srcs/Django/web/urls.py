@@ -27,4 +27,9 @@ urlpatterns = [
 
 	path('increment_victory/', views.increment_victory, name='increment_victory'),
 	path('increment_losses/', views.increment_losses, name='increment_losses'),
+
+	
+	#API PATH
+	path('auth/42/', views.redirect_to_42, name='auth_42'),
+    path('auth/42/callback/', views.auth_callback, name='auth_callback'),
 ]

@@ -1,6 +1,7 @@
 /*------------Canvas and background setup---------*/
 let aitrigger = 0;//trigger for ai game mode
 let	friendtrigger = 0;//trigger for online game mode
+let localtrigger = 0;
 let clienttrigger = 0;
 let trigger = 0;
 let p1_username;
@@ -10,7 +11,7 @@ let p1, p2;
 let ball;
 let hostname = "      ";
 let width = 10;
-let height = 30;
+let height = width * 3;
 let maxBounceAngle = Math.PI / 3;
 let speed = 1;
 let refresh_rate = 10
@@ -102,14 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
 					if (this.dx < 0)
 						this.dx *= -1;
 					this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
-				if (hostname != p2_username)
+				if (friendtrigger === 1 && hostname != p2_username)
 					sendBallUpdate();
 
 			}
 				else if (this.isPlayerHit(p2)) {
 					this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
 					this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
-					if (hostname != p2_username)
+					if (friendtrigger === 1 && hostname != p2_username)
 						sendBallUpdate();
 
 			}
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					this.y = canvas.height / 2;
 					this.dy = 0;
 					trigger = 0;
-					if (hostname != p2_username)
+					if (friendtrigger === 1 && hostname != p2_username)
 						sendBallUpdate();		
 				}
 			this.x += this.dx;
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	}
 
-	p1 = new Player(10, canvas.height/2);
+	p1 = new Player(width, canvas.height/2);
 	p2 = new Player(canvas.width - (width * 2), canvas.height/2);
 	ball = new Ball(canvas.width / 2, canvas.height / 2, 5);
 
@@ -154,12 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// Update key state on keydown
 	document.addEventListener('keydown', (event) => {
-	keys[event.key] = true;
+		keys[event.key] = true;
 	});
 
 	// Update key state on keyup
 	document.addEventListener('keyup', (event) => {
-	keys[event.key] = false;
+		keys[event.key] = false;
 	});
 
 	function movement() {
@@ -174,10 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (friendtrigger === 1)
 				sendPlayerUpdate();
 		}
-		if (keys[" "] && (aitrigger === 1 || (friendtrigger === 1 && p2_username != hostname)) && trigger === 0)
+		if (keys["ArrowDown"] && localtrigger === 1)
+			p2.movePlayer(speed);
+		if (keys["ArrowUp"] && localtrigger === 1)
+			p2.movePlayer(-(speed));
+		if (keys[" "] && (aitrigger === 1 || (friendtrigger === 1 && p2_username != hostname) || localtrigger === 1) && trigger === 0)
 		{
 			trigger = 1;
-			sendBallUpdate();
+			if (friendtrigger === 1 && p2_username != hostname)
+				sendBallUpdate();
 		}
 		if (aitrigger === 1 && ball.x >= canvas.width / 2 && ball.dx > 0 && trigger === 1)
 			aiBot();
@@ -200,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		TheGame.classList.remove('active');
 		scoreboard.classList.remove('active');
+		winText.innerText = "";
 		if (p1.points === 10)
 			winText.innerText += "Player one won !";
 		else
@@ -216,7 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		friendtrigger = 0;
 		user_id = "";
 		hostname = "       ";
-		p2_username = "";
 	}
 
 	function drawFrame() {
@@ -229,10 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		if (is_in_bottom === 0)
 			movement();
-		if (trigger === 1 && (aitrigger === 1 || (friendtrigger === 1 && hostname != p2_username)))// to change on setup
+		if (trigger === 1)// to change on setup
 				ball.moveBall(p1, p2);
-		if (trigger === 1 && friendtrigger === 1 && hostname === p2_username && clienttrigger === 0)
-			ball.moveBall(p1, p2);
 		if (p1.points === 10 || p2.points == 10)
 		{
 			if (p1.points === 10 && friendtrigger === 1)

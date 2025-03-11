@@ -37,3 +37,8 @@ function showLoginForm() {
         }, 50);
     }
 }
+
+function connectWithApi() {
+    // This will redirect the browser to 42's OAuth authorization page
+    window.location.href = '/auth/42/';
+}

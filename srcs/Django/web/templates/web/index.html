@@ -58,6 +58,8 @@
             <h2 id="p1-points" style="font-family: 'Poiret One';"></h2>
             <h2 id="p2-points" style="font-family: 'Poiret One';"></h2>
         </div>
+
+
 		<center><div id="GameMenu">
 			<span id="VsAi" onclick="activateAiGame()" class="GameOption">
 				<span class="material-symbols-outlined">smart_toy</span>
@@ -67,7 +69,7 @@
 				<span class="material-symbols-outlined">swords</span>
 				<span class="material-symbols-outlined">Vs Friend</span>
 			</span>
-			<span id="local" onclick="activateFriendMenu()" class="GameOption">
+			<span id="local" onclick="activateLocalGame()" class="GameOption">
 				<span class="material-symbols-outlined">public_off</span>
 				<span class="material-symbols-outlined">Local</span>
 			</span>
@@ -76,6 +78,8 @@
 				<span class="material-symbols-outlined">Online</span>
 			</span>
 		</div></center>
+
+
 		<h1 id="FriendTitle" class="material-symbols-outlined" style="color: white; font-family: 'Poiret One', serif">Friend List</h1>
 		<div class="friendList">
 				<ul id = "friendList"></ul>
@@ -83,10 +87,14 @@
 
    		<canvas id= "TheGame" style="border:1px solid rgb(102, 90, 102);" class="TheGame"> </canvas>
 		<button id="ReturnButton" class="material-symbols-outlined" onclick="returnToPreviousMenu()">arrow_backReturn</button>
+
+		
 		<div id="GameInvite">
 			<button class="material-symbols-outlined" id="accept" onclick="acceptGameInvite()" ><span>check</span><span>Accept</span></button>
 			<button class="material-symbols-outlined" id="decline" onclick="declineGameInvite()"><span>close</span><span>Decline</span></button>
 		</div>
+
+
 		<span class="material-symbols-outlined" id="loading">Waiting for p2 to accept...</span>
 		<div id="winner">
 			<span class="material-symbols-outlined" style="scale: 2">trophy</span>
@@ -222,7 +230,7 @@
         <h1>Settings</h1>
         <p id="username">Votre Username : {{ request.user.username }}</p>
 		<div id="Stats">
-			<h1 class="material-symbols-outlined">Stats</h1>
+			<h1 class="simpleText">Stats</h1>
 			<p id="Victory">Victories: {{ request.user.victory  }} </p>
 			<p id="Losses">Losses: {{ request.user.losses  }}</p>
 		</div>

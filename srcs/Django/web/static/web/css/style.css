@@ -802,11 +802,6 @@ html, body {
 	padding:10px;
 }
 
-#VsAi.inactive,#VsFriend.inactive
-{
-	display: none;
-}
-
 .friendList
 {
 	opacity: 0;
@@ -850,7 +845,7 @@ html, body {
 	gap: 40px;
 }
 
-#GameMenu.inactive
+#GameMenu.inactive, #VsAi.inactive,#VsFriend.inactive
 {
 	display: none;
 	opacity: 0;
@@ -900,7 +895,7 @@ html, body {
 
 }
 
-#TheGame.active, #scoreboard.active
+#TheGame.active, #scoreboard.active, #ReturnButton.active, #winner.active
 {
 	display:flex;
 	opacity: 1;
@@ -915,21 +910,13 @@ html, body {
     justify-content: center; /* Centre verticalement */
     position: absolute; /* Permet de le placer précisément */
     top: 25%; /* Place l'élément au milieu de l'écran */
-    display: flex;
+    display: none;
     opacity: 0;
     visibility: hidden;
 	flex-wrap: wrap;
 	transition: transform 0.5s ease, opacity 0.5s ease;/*  Animation fluide*/
 	transform: scale(1.5);
 	gap: 80px;
-}
-
-
-#winner.active
-{
-	opacity: 1;
-    visibility: visible;
-	transform: scale(1);
 }
 
 .returnButton
@@ -952,6 +939,7 @@ html, body {
 
 #ReturnButton
 {
+	display: none;
 	cursor: pointer;
 	border: none;
 	border-radius: 5px;
@@ -966,7 +954,10 @@ html, body {
 {
 	display: none;
 	align-items: center;
-	transition: transform 0.5s ease, opacity 0.5s ease; 
+	transition: transform 0.5s ease, opacity 0.5s ease;
+	position: absolute;
+	top:50%;
+	gap: 20px;
 }
 
 #GameInvite.active, #loading.active
@@ -998,6 +989,9 @@ html, body {
 #loading
 {
 	display:none;
+	position: absolute;
+	top:50%;
+	
 }
 /*end of game css SETUP*/
 

@@ -106,11 +106,11 @@ function returnToPreviousMenu()
 	let local = document.getElementById('local');
 	let	friendMenu = document.getElementsByClassName('friendList');
 	let friendTitle = document.getElementById('FriendTitle');
-
-
+	let returnButton = document.getElementById('ReturnButton');
 
 	if (MenuTrigger === 1)
 	{
+		returnButton.classList.remove('active');
 		MenuTrigger = 0;
 		VsAi.classList.remove('inactive');
 		VsFriend.classList.remove('inactive');
@@ -125,19 +125,40 @@ function returnToPreviousMenu()
 		friendTitle.classList.remove('active');
 		friendMenu[0].classList.remove('active');
 	}
-}  
+}
+
 function activateAiGame()
 {
 	let GameMenu = document.getElementById('GameMenu');
 	let	TheGame = document.getElementById('TheGame');
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
+	let returnButton = document.getElementById('ReturnButton');
 
+	returnButton.classList.remove('active');
 	GameMenu.classList.add('inactive');
 	TheGame.classList.add('active');
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
 	aitrigger = 1;
+	trigger = 0;
+}
+
+function activateLocalGame()
+{
+	let GameMenu = document.getElementById('GameMenu');
+	let	TheGame = document.getElementById('TheGame');
+	let	Scoreboard = document.getElementById('scoreboard');
+	let winner = document.getElementById('winner');
+	let returnButton = document.getElementById('ReturnButton');
+
+	returnButton.classList.remove('active');
+	GameMenu.classList.add('inactive');
+	TheGame.classList.add('active');
+	Scoreboard.classList.add('active');
+	winner.classList.remove('active');
+	localtrigger = 1;
+	trigger = 0;
 }
 
 function activateFriendMenu()
@@ -146,8 +167,10 @@ function activateFriendMenu()
 	let VsFriend = document.getElementById('VsFriend');
 	let online = document.getElementById('online');
 	let local = document.getElementById('local');
+	let returnButton = document.getElementById('ReturnButton');
 
 	MenuTrigger = 1;
+	returnButton.classList.add('active');
 	VsAi.classList.add('inactive');
 	VsFriend.classList.add('inactive');
 	local.classList.add('active');
@@ -180,6 +203,8 @@ function handleGameInvite(_data)
 	let local = document.getElementById('local');
 	let	friendMenu = document.getElementsByClassName('friendList');
 	let friendTitle = document.getElementById('FriendTitle');
+	let returnButton = document.getElementById('ReturnButton');
+	let winner = document.getElementById('winner');
 
 	VsAi.classList.add('inactive');
 	VsFriend.classList.add('inactive');
@@ -187,7 +212,10 @@ function handleGameInvite(_data)
 	online.classList.remove('active');
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
+	returnButton.classList.remove('active');
+	winner.classList.remove('active');
 	GameInvite.classList.add('active');
+	
 	console.log("_data.hostname:", _data.hostname);
 	fetch(`/search_users/?q=${_data.hostname}`) // make a global setup
 	.then(response => response.json())
@@ -217,12 +245,12 @@ function acceptGameInvite()
 
 function declineGameInvite()
 {
-	let online = document.getElementById('online');
-	let local = document.getElementById('local');
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
 	let GameInvite = document.getElementById('GameInvite');
 
-	local.classList.add('active');
-	online.classList.add('active');
+	VsAi.classList.remove('inactive');
+	VsFriend.classList.remove('inactive');
 	GameInvite.classList.remove('active');
 	if (window.mySocket.readyState === WebSocket.OPEN) {
 		const sending_data = {
@@ -241,7 +269,11 @@ function ChallengeFriend(_p2_username)
 	let loading = document.getElementById("loading");
 	let	friendMenu = document.getElementsByClassName('friendList');
 	let friendTitle = document.getElementById('FriendTitle');
+	let returnButton = document.getElementById('ReturnButton');
+	let winner = document.getElementById('winner');
 
+	winner.classList.remove('active');
+	returnButton.classList.remove('active');
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
 	console.log("_p2_username: ", _p2_username);
@@ -268,10 +300,15 @@ function ChallengeFriend(_p2_username)
 
 function rePlay()
 {
-	if (aitrigger === 1)
+	let winner = document.getElementById('winner');
+
+	winner.classList.remove('active');
+	if (MenuTrigger === 0)
 		activateAiGame();
-	else
+	else if (p2_username)
 		ChallengeFriend(p2_username);
+	else
+		activateLocalGame();
 }
 
 function ShowFriendList_game()
@@ -295,10 +332,10 @@ function ShowFriendList_game()
 	
 	friendList.innerHTML = '';
 
-    if (friends.children.length === 0) {
+    if (friends.children.length === 0 || friends.children.length === 1 && friends.children[0].textContent === "Aucun ami ajouté pour le moment.") {
         friendList.insertAdjacentHTML(
             'beforeend',
-            `<li class="material-symbols-outlined">Aucun ami trouvé</li>`
+            `<li style="color: white;" >Aucun ami trouvé</li>`
         );
         return;
     }
@@ -323,11 +360,22 @@ function ShowFriendList_game()
 function returnToMenu()
 {
 	let GameMenu = document.getElementById('GameMenu');
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
 	let winner = document.getElementById('winner');
 
+	MenuTrigger = 0;
+	local.classList.remove('active');
+	online.classList.remove('active');
+	VsAi.classList.remove('inactive');
+	VsFriend.classList.remove('inactive');
 	GameMenu.classList.remove('inactive');
 	winner.classList.remove('active');
 	aitrigger = 0;
+	friendtrigger = 0;
+	p2_username = "";
 
 }
 /*---------------------------------------*/

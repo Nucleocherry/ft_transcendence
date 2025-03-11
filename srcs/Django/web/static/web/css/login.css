@@ -148,3 +148,28 @@ html, body {
     background-color: #f7f7f7;
     color: #000;
 }
+
+.ApiLoginButton	{
+	margin-top: 10px;
+	margin-right: 10px;
+    background-color: #f7f7f7;
+    font-family: 'Poiret One', serif;
+    color: #000;
+    border: 6px double #000000;
+    padding: 10px;
+    font-size: 1rem;
+	border-radius: 25%;
+    transition: 0.3s ease;
+
+	width: 8%;
+	aspect-ratio: 1 / 1;
+
+
+	position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.ApiLoginButton:hover	{
+    transform: scale(1.1);
+}

@@ -1,5 +1,9 @@
 import json
+import random
+import string
+import requests
 
+from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages  
@@ -14,7 +18,7 @@ from asgiref.sync import async_to_sync
 
 from .models import Utilisateur, FriendRequest, Message
 
-
+from urllib.parse import urlencode
 
 
 
@@ -32,6 +36,134 @@ def home(request):
 
 def login(request):
     return render(request, 'web/login.html')
+
+
+
+#API CONNECTION
+
+def generate_state():
+    """Generate a random string to protect against CSRF attacks"""
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+
+def generate_random_password(length=12):
+    """Generate a random password of a given length."""
+    characters = string.ascii_letters + string.digits + string.punctuation  # Inclut lettres, chiffres et symboles
+    password = ''.join(random.choices(characters, k=length))  # Choisir aléatoirement des caractères
+    return password
+
+def generate_unique_username(username):
+    """Generate a unique username by appending a number or string if the username already exists."""
+    new_username = username
+    counter = 1
+    while Utilisateur.objects.filter(username=new_username).exists():  # Check if the username already exists
+        new_username = f"{username}_{counter}"  # Append a counter to the username
+        counter += 1
+    return new_username
+
+def redirect_to_42(request):
+    # Your 42 app credentials (from settings.py)
+    client_id = settings.CLIENT_ID  # You should have this in your settings
+    redirect_uri = settings.REDIRECT_URI  # Same as your registered redirect URI
+    scope = "public"  # You can modify the scope depending on what you need
+    state = generate_state()  # Generate a state to prevent CSRF attacks
+    
+    # Construct the authorization URL
+    params = {
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': scope,
+        'state': state,
+    }
+    print("trying connection ")
+    # Encode the URL
+    authorize_url = f"https://api.intra.42.fr/oauth/authorize?{urlencode(params)}"
+    
+    # You can save the state value in session for later validation
+    request.session['oauth_state'] = state
+    
+    print("redirecting-> ", authorize_url)
+    return redirect(authorize_url)
+
+def auth_callback(request):
+    code = request.GET.get('code')
+    print("authentification done -> ", code)
+    if not code:
+        return redirect('login')  # If no code, redirect to login or show an error
+
+    access_token = get_access_token_from_code(code)
+    
+    if not access_token:
+        print("->  - - - ACCESS TOKEN ERROR !")
+        return redirect('login')  # If access token wasn't obtained, handle accordingly
+
+    user_data = get_user_data_from_42(access_token)
+    
+    if not user_data:
+        print("->  - - - USER DATA ERROR !")
+        return redirect('login')  # If user data couldn't be retrieved, handle accordingly
+
+    # Extract email from user data
+    api_email = user_data.get('email') + ".api_connected"
+    print("got data and created email as -> ", api_email)
+
+    try:
+        user = Utilisateur.objects.get(email=api_email)
+        auth_login(request, user)
+    except Utilisateur.DoesNotExist:  # Catch the correct exception (Utilisateur.DoesNotExist)
+        unique_username = generate_unique_username(user_data.get('login'))
+        random_password = generate_random_password()
+        user = Utilisateur(email=api_email, username=unique_username, password=random_password, victory=0, is_online=True)
+        user.save()
+        # Log the user in after account creation
+        auth_login(request, user)  # Log in with 'user' instead of 'utilisateur'
+
+    return redirect('home')  # Or any other page you want to redirect to after login
+
+
+
+def get_access_token_from_code(code):
+    """Exchange the authorization code for an access token from 42."""
+    url = 'https://api.intra.42.fr/oauth/token'
+    data = {
+        'grant_type': 'authorization_code',
+        'client_id': settings.CLIENT_ID, # Remplace par ton client_id
+        'client_secret': settings.CLIENT_SECRET,  # Remplace par ton client_secret
+        'code': code,  # Le code reçu dans le callback
+        'redirect_uri': 'http://localhost:8000/auth/42/callback/',  # Assure-toi que c'est la bonne URL de redirection
+    }
+
+    # Effectue la requête POST pour échanger le code contre un access token
+    response = requests.post(url, data=data)
+    
+    # Affiche la réponse pour le débogage
+    print(f"Token exchange response: {response.status_code} {response.text}")
+
+    if response.status_code == 200:
+        access_token = response.json().get('access_token')
+        print(f"Access Token: {access_token}")  # Affiche l'access token
+        return access_token
+    else:
+        # Si une erreur se produit, affiche l'erreur pour mieux comprendre
+        print(f"Error occurred: {response.text}")
+        return None
+
+
+
+def get_user_data_from_42(access_token):
+    """Fetch user data from the 42 API using the access token."""
+    url = 'https://api.intra.42.fr/v2/me'
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    return None
+
+
+
+
 
 def inscription(request):
     if request.method == 'POST':
