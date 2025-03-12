@@ -80,6 +80,11 @@ showFriendList();
 showFriendRequestList();
 let notifTimeout; // Variable pour stocker le timeout
 let lastMessageTimestamp = 0;
+let settingDisplayType = 0;
+
+// Global variable to store the chart instance
+let winLossChartInstance;
+let winLossChartInstance_user;
 /*------------------------------------FONCTION PRINCIPALE MOUVEMENT SUR LA PAGE-------------------------*/
 var is_in_bottom = 1
 function scrollToBottom()
@@ -502,6 +507,134 @@ function scrollToSettingsMenu(activate) {
     }
 }
 
+function activateSettingsInfo() {
+	settingDisplayType = 0;
+	selectSettingDisplay();
+}
+
+function activateSettingsStats(id) {
+	settingDisplayType = 1;
+	getSelfStats(id);
+	selectSettingDisplay();
+}
+
+function activateSettingsSettings() {
+	settingDisplayType = 2;
+	selectSettingDisplay();
+}
+
+
+
+
+
+function selectSettingDisplay() {
+  // Hide all the divs first
+  document.getElementById('SettingsInfo').style.display = 'none';
+  document.getElementById('SettingsStats').style.display = 'none';
+  document.getElementById('SettingsSetting').style.display = 'none';
+  
+  // Show the div based on the index
+  if (settingDisplayType === 0) {
+    document.getElementById('SettingsInfo').style.display = 'block';
+  } else if (settingDisplayType === 1) {
+    document.getElementById('SettingsStats').style.display = 'block';
+  } else if (settingDisplayType === 2) {
+    document.getElementById('SettingsSetting').style.display = 'block';
+  }
+}
+
+
+
+async function getSelfStats(id) {
+    try {
+        const response = await fetch(`/get_player_stats/?user_id=${id}`, {  // Pass user_id as a query parameter
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest", // Helps Django recognize AJAX requests
+            },
+            credentials: "include", // Ensures cookies (like session authentication) are sent
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("User ID:", data.user_id);
+            console.log("Victories:", data.victories);
+            console.log("Losses:", data.losses);
+            console.log("Rank:", data.rank);
+
+			showSelfStats(data.victories, data.losses, data.rank)
+        } else {
+            console.error("Failed to fetch player stats:", data.error);
+        }
+    } catch (error) {
+        console.error("Error fetching player stats:", error);
+    }
+}
+
+
+
+
+
+function showSelfStats(wins, losses, rank) {
+  
+  // Calculate the ratio
+  let ratio = (wins + losses) > 0 ? (wins / (wins + losses)).toFixed(2) : "N/A";
+
+  // Update the Ratio and Rank display
+  document.getElementById("Ratio").textContent = `Ratio: ${ratio}`;
+  document.getElementById("Rank").textContent = `Rank: ${rank}`;
+
+  // Get the canvas
+  const canvas = document.getElementById('winLossChart');
+  if (!canvas) {
+    console.error('Canvas element not found.');
+    return;
+  }
+
+  // If a chart already exists, destroy it
+  if (winLossChartInstance) {
+    winLossChartInstance.destroy();
+    canvas.removeAttribute('style'); // Remove any Chart.js inline styles
+  }
+
+  // Ensure the canvas retains the class
+  canvas.classList.add('chartSelf');
+
+  const ctx = canvas.getContext('2d');
+  winLossChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Wins', 'Losses'],
+      datasets: [{
+        data: [wins, losses], // Dynamic values
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 99, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 99, 132, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: false
+    }
+  });
+}
+
+
+
+
+
+
+
 function fetchUsers(query = '') {
     fetch(`/search_users/?q=${query}`)
         .then(response => response.json())  
@@ -542,6 +675,7 @@ function friendOptionMenu(user) {
 	selectUserDisplay(user.id);
 
     document.getElementById("userDetails").classList.add("active");
+
     document.getElementById("userUsername").innerText = user.username;
 	console.log(user.is_online);
     document.getElementById("userStatus").innerText = user.is_online;
@@ -549,6 +683,9 @@ function friendOptionMenu(user) {
     // Stocker l'ID de l'utilisateur cible dans le bouton
     document.getElementById("addFriendButton").setAttribute("data-user-id", user.id);
     document.getElementById("blockButton").setAttribute("data-user-id", user.id);
+	document.getElementById("unblockButton").setAttribute("data-user-id", user.id);
+    document.getElementById("statsButton").setAttribute("data-user-id", user.id);
+
 
     document.getElementById("sendMessageBar").setAttribute("data-user-id", user.id);
 
@@ -561,6 +698,104 @@ function friendOptionMenu(user) {
 function resetUserDetails() {
     document.getElementById("userDetails").classList.remove("active");
 }
+
+
+function activateUserStats() {
+	const UserId = document.getElementById("addFriendButton").getAttribute("data-user-id");
+    document.getElementById("userStats").classList.add("active");
+	getUserStats(UserId);
+}
+
+function resetUserStats() {
+    document.getElementById("userStats").classList.remove("active");
+}
+
+
+
+async function getUserStats(id) {
+    try {
+        const response = await fetch(`/get_player_stats/?user_id=${id}`, {  // Pass user_id as a query parameter
+            method: "GET",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest", // Helps Django recognize AJAX requests
+            },
+            credentials: "include", // Ensures cookies (like session authentication) are sent
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log("User ID:", data.user_id);
+            console.log("Victories:", data.victories);
+            console.log("Losses:", data.losses);
+            console.log("Rank:", data.rank);
+
+			showUserStats(data.victories, data.losses, data.rank)
+        } else {
+            console.error("Failed to fetch player stats:", data.error);
+        }
+    } catch (error) {
+        console.error("Error fetching player stats:", error);
+    }
+}
+
+
+
+
+
+function showUserStats(wins, losses, rank) {
+  
+  // Calculate the ratio
+  let ratio = (wins + losses) > 0 ? (wins / (wins + losses)).toFixed(2) : "N/A";
+
+  // Update the Ratio and Rank display
+  document.getElementById("Ratio").textContent = `Ratio: ${ratio}`;
+  document.getElementById("Rank").textContent = `Rank: ${rank}`;
+
+  // Get the canvas
+  const canvas = document.getElementById('winLossChart_User');
+  if (!canvas) {
+    console.error('Canvas element not found.');
+    return;
+  }
+
+  // If a chart already exists, destroy it
+  if (winLossChartInstance_user) {
+    winLossChartInstance_user.destroy();
+    canvas.removeAttribute('style'); // Remove any Chart.js inline styles
+  }
+
+  // Ensure the canvas retains the class
+  canvas.classList.add('chartSelf');
+
+  const ctx = canvas.getContext('2d');
+  winLossChartInstance_user = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Wins', 'Losses'],
+      datasets: [{
+        data: [wins, losses], // Dynamic values
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 99, 132, 0.6)'
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 99, 132, 1)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: false
+    }
+  });
+}
+
 
 
 // Fonction pour lancer la recherche à chaque saisie dans la barre de recherche
@@ -634,6 +869,30 @@ function blockUser() {
 	.catch(error => console.error("Erreur lors du blockage:", error));
 }
 
+function unblockUser() {
+	// Récupérer l'ID de l'utilisateur cible depuis l'attribut data-user-id
+	const toUserId = document.getElementById("unblockButton").getAttribute("data-user-id");
+
+	if (!toUserId) {
+		alert("Erreur : ID utilisateur manquant.");
+		return;
+	}
+	// Envoi de la requête POST pour ajouter un ami, avec CSRF token
+	fetch("/unblockUser/", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+			"X-CSRFToken": getCSRFToken(),  // Récupère le CSRF token depuis le cookie
+		},
+		body: `to_user_id=${toUserId}`  // Envoie l'ID dans le corps de la requête
+	})
+	.then(response => response.json())
+	.then(result => {
+		selectUserDisplay(toUserId);
+	})
+	.catch(error => console.error("Erreur lors du blockage:", error));
+}
+
 
 
 async function isUserBlocked(toUserId) {
@@ -692,6 +951,7 @@ function selectUserDisplay(toUserId) {
 		   document.getElementById("ifNotFriend").style.display = friend ? "none" : "block";
 	   });
 }
+
 function showFriendList() {
 //	console.log("je rentre dans la foncition");
 	

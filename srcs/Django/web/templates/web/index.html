@@ -13,6 +13,8 @@
         <link rel="stylesheet" type="text/css" href="{% static 'web/css/style.css' %}">
         <script type="text/javascript"  src="{% static 'web/js/script.js' %}"></script>
         <script type="text/javascript"  src="{% static 'web/js/pong.js' %}"></script>
+		
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -61,7 +63,7 @@
 
 
 		<center><div id="GameMenu">
-			<span id="VsAi" onclick="activateAiGame()" class="GameOption">
+			<span id="VsAi" onclick="activateAiGame()" class="GameOption" >
 				<span class="material-symbols-outlined">smart_toy</span>
 				<span class="material-symbols-outlined">Vs Ai</span>
 			</span>
@@ -69,7 +71,7 @@
 				<span class="material-symbols-outlined">swords</span>
 				<span class="material-symbols-outlined">Vs Friend</span>
 			</span>
-			<span id="local" onclick="activateLocalGame()" class="GameOption">
+			<span id="local" onclick="activateFriendMenu()" class="GameOption">
 				<span class="material-symbols-outlined">public_off</span>
 				<span class="material-symbols-outlined">Local</span>
 			</span>
@@ -162,7 +164,7 @@
 					<button id="statsButton" 
 							class="addFriendButton" 
 							data-user-id="" 
-							onclick="addFriendRequest()">
+							onclick="activateUserStats()">
 							<p>Stats</p>
 							<span class="material-symbols-outlined icon-smaller">trophy</span>
 					</button>
@@ -206,13 +208,28 @@
 						<button id="unblockButton" 
 							class="unblockButton" 
 							data-user-id="" 
-							onclick="blockUser()">
+							onclick="unblockUser()">
 							<p>Debloquer</p>
 							<span class="material-symbols-outlined icon-smaller">favorite</span>
 						</button>
 					</div>
 					<hr>
 				</div>
+
+				<div id="userStats" class="userStats">
+					<button class="backButton" onclick="resetUserStats()">
+						<span class="material-symbols-outlined">arrow_back</span>
+					</button>
+					<h1 class="simpleText">Stats</h1>
+					<div class="statsTextWrapper">
+						<p id="Ratio">Ratio:</p>
+						<p id="Rank">Rank:</p>
+					</div>
+					<div class="chart-wrapper">
+						<canvas id="winLossChart_User" class="chartSelf"></canvas>
+					</div>
+				</div>
+
 			</div>
 		</div>
 	
@@ -227,13 +244,47 @@
 	
 	<!-- HERE IS THE SETTINGS MENU -->
     <div id="settingsMenu" class="settingsMenu">
-        <h1>Settings</h1>
+        <h1 class="smallerTitle">Settings</h1>
         <p id="username">Votre Username : {{ request.user.username }}</p>
-		<div id="Stats">
-			<h1 class="simpleText">Stats</h1>
-			<p id="Victory">Victories: {{ request.user.victory  }} </p>
-			<p id="Losses">Losses: {{ request.user.losses  }}</p>
+		<div class="userButtonBox">
+			<button id="settingInfoButton" 
+					class="addFriendButton" 
+					onclick="activateSettingsInfo()">
+					<p>Info</p>
+					<span class="material-symbols-outlined icon-smaller">person</span>
+			</button>
+			<button id="statsSettingButton" 
+					class="addFriendButton"
+					data-user-id="{{ request.user.id }}"
+					onclick="activateSettingsStats(this.dataset.userId)">
+					<p>Stats</p>
+					<span class="material-symbols-outlined icon-smaller">trophy</span>
+			</button>
+			<button id="SettingsSettingButton" 
+					class="addFriendButton" 
+					onclick="activateSettingsSettings()">
+					<p>Settings</p>
+					<span class="material-symbols-outlined icon-smaller">settings</span>
+			</button>
 		</div>
+		
+		<div id="SettingsInfo" style="display: block;">
+			<h1 class="simpleText">Info</h1>
+		</div>
+		<div id="SettingsStats" style="display: none;">
+			<h1 class="simpleText">Stats</h1>
+			<div class="statsTextWrapper">
+				<p id="Ratio">Ratio:</p>
+				<p id="Rank">Rank:</p>
+			</div>
+			<div class="chart-wrapper">
+				<canvas id="winLossChart" class="chartSelf"></canvas>
+			</div>
+		</div>
+		<div id="SettingsSetting"  style="display: none;">
+			<h1 class="simpleText">Settings</h1>
+		</div>
+
         <a href="{% url 'logout' %}" id="logoutButton"><span class="material-symbols-outlined">logout</span></a>
     </div>
 
