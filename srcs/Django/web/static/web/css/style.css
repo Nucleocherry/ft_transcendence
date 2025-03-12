@@ -260,6 +260,34 @@ html, body {
     transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
 }
 
+
+.userStats.active {
+    transform: translateX(0); /* Fait glisser le panneau à l'écran */
+    opacity: 1; /* Le rend visible */
+}
+
+.userStats.not_active {
+    display: none;
+}
+
+.userStats {
+    position: fixed;  /* Permet de garder le menu visible en permanence */
+    top: 20px;  /* Décale un peu le menu du haut */
+    left: 0px;  /* Positionne le menu hors de la fenêtre à gauche */
+
+    width: 100%;  /* Largeur du menu */
+
+    height: calc(100% - 40px);  /* Occupe presque toute la hauteur de l'écran */
+    background-color: #222;  /* Couleur de fond pour le menu */
+    color: white;  /* Couleur du texte */
+    padding: 20px;  /* Espacement interne */
+    z-index: 1002;  /* Assure que le menu soit au-dessus des autres éléments */
+    border-radius: 15px; /* Arrondir les bords */
+    opacity: 0; /* Le rend invisible */
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+    transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
+}
+
 #userStatus {
     display: inline-flex;
     align-items: center;
@@ -419,6 +447,25 @@ html, body {
 
 .settingsProfileDetails.not_active {
     display: none;
+}
+
+.statsTextWrapper {
+    font-family: 'Poiret One', serif;
+    display: flex;
+    align-items: center; /* Align items vertically */
+    justify-content: space-between; /* Align items to the start (left) */
+    gap: 10px; /* Add some space between elements */
+}
+
+.chart-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.chartSelf {
+	width: 75% !important;
+	height: auto !important;
 }
 
 
@@ -802,6 +849,11 @@ html, body {
 	padding:10px;
 }
 
+#VsAi.inactive,#VsFriend.inactive
+{
+	display: none;
+}
+
 .friendList
 {
 	opacity: 0;
@@ -846,7 +898,7 @@ html, body {
 	gap: 40px;
 }
 
-#GameMenu.inactive, #VsAi.inactive,#VsFriend.inactive
+#GameMenu.inactive
 {
 	display: none;
 	opacity: 0;
@@ -896,7 +948,7 @@ html, body {
 
 }
 
-#TheGame.active, #scoreboard.active, #ReturnButton.active, #winner.active
+#TheGame.active, #scoreboard.active
 {
 	display:flex;
 	opacity: 1;
@@ -911,13 +963,21 @@ html, body {
     justify-content: center; /* Centre verticalement */
     position: absolute; /* Permet de le placer précisément */
     top: 25%; /* Place l'élément au milieu de l'écran */
-    display: none;
+    display: flex;
     opacity: 0;
     visibility: hidden;
 	flex-wrap: wrap;
 	transition: transform 0.5s ease, opacity 0.5s ease;/*  Animation fluide*/
 	transform: scale(1.5);
 	gap: 80px;
+}
+
+
+#winner.active
+{
+	opacity: 1;
+    visibility: visible;
+	transform: scale(1);
 }
 
 .returnButton
@@ -940,7 +1000,6 @@ html, body {
 
 #ReturnButton
 {
-	display: none;
 	cursor: pointer;
 	border: none;
 	border-radius: 5px;
@@ -956,9 +1015,6 @@ html, body {
 	display: none;
 	align-items: center;
 	transition: transform 0.5s ease, opacity 0.5s ease;
-	position: absolute;
-	top:50%;
-	gap: 20px;
 }
 
 #GameInvite.active, #loading.active
@@ -990,9 +1046,6 @@ html, body {
 #loading
 {
 	display:none;
-	position: absolute;
-	top:50%;
-	
 }
 /*end of game css SETUP*/
 
