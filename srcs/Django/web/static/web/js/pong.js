@@ -22,7 +22,7 @@ function move_remote_ball(data)
 	trigger = data.trigger;
 	ball.dx = -data.ball.dx;
 	ball.dy = data.ball.dy;
-	ball.x += ball.dx;
+	ball.x = (data.width / 2 )+ ((data.width / 2 )- data.ball.x) ;
 	ball.y = data.ball.y;
 	clienttrigger = 0;
 	console.log("p2_username : ", p2_username, " hostname ", hostname, "trigger: ", trigger, "clienttrigger: ", clienttrigger, "friendtrigger: ", friendtrigger);
@@ -103,15 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
 					if (this.dx < 0)
 						this.dx *= -1;
 					this.dy = speed * Math.sin(this.calculate_bounceAngle(p1));
-				if (friendtrigger === 1 && hostname != p2_username)
-					sendBallUpdate();
+				/*if (friendtrigger === 1 && hostname != p2_username)
+					sendBallUpdate();*/
 
 			}
 				else if (this.isPlayerHit(p2)) {
 					this.dx = -speed * Math.cos(this.calculate_bounceAngle(p2));
 					this.dy = speed * Math.sin(this.calculate_bounceAngle(p2));
-					if (friendtrigger === 1 && hostname != p2_username)
-						sendBallUpdate();
+					/*if (friendtrigger === 1 && hostname != p2_username)
+						sendBallUpdate();*/
 
 			}
 			else if (this.y - this.radius <= 0 || this.y + this.radius >= canvas.height)
@@ -136,11 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
 					this.y = canvas.height / 2;
 					this.dy = 0;
 					trigger = 0;
-					if (friendtrigger === 1 && hostname != p2_username)
-						sendBallUpdate();		
+				/*	if (friendtrigger === 1 && hostname != p2_username)
+						sendBallUpdate();		*/
 				}
+				
 			this.x += this.dx;
 			this.y += this.dy;
+			if (friendtrigger === 1)
+				sendBallUpdate();
 			this.drawBall();
 		}
 	}
@@ -235,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		if (is_in_bottom === 0)
 			movement();
-		if (trigger === 1)// to change on setup
+		if (trigger === 1 && (aitrigger === 1 || (friendtrigger === 1 && hostname != p2_username) || localtrigger === 1))// to change on setup
 				ball.moveBall(p1, p2);
 		if (p1.points === 10 || p2.points == 10)
 		{
@@ -310,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				ball: {x: ball.x, y: ball.y, dx: ball.dx, dy: ball.dy},
 				points: {p1: p1.points, p2: p2.points},
 				target_group: "user_" + user_id,
+				width: canvas.width,
 				trigger: trigger,
 			};
 	
