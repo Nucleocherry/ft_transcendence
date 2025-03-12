@@ -224,8 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		trigger = 0;
 		aitrigger = 0;
 		friendtrigger = 0;
-		user_id = "";
 		hostname = "       ";
+		user_id = "";
 	}
 
 	function drawFrame() {
@@ -251,16 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
 						"Content-Type": "application/json"
 					}
 				})
-				.then(response => response.json())
-				.then(data => {
-					if (data.status === "success")
-					{
-						document.getElementById("Victory").innerText = "Victories : " + data.victory;
-					}
-					else
-						console.error("Error updating victory: ", data.message)
-				})
-				.catch(error => console.error("Request failed: ", error));
 			}
 			if (p2.points === 10 && friendtrigger === 1)
 			{
@@ -271,16 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
 						"Content-Type": "application/json"
 					}
 				})
-				.then(response => response.json())
-				.then(data => {
-					if (data.status === "success")
-					{
-						document.getElementById("Losses").innerText = "Losses : " + data.losses;
-					}
-					else
-						console.error("Error updating Losses: ", data.message)
-				})
-				.catch(error => console.error("Request failed: ", error));
 			}
 			reInitialize();
 		}

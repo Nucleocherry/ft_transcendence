@@ -265,8 +265,6 @@ function declineGameInvite()
 		}
 		window.mySocket.send(JSON.stringify(sending_data));
 	}
-	hostname = "       ";
-	user_id = "";
 }
 
 function ChallengeFriend(_p2_username)
@@ -381,6 +379,8 @@ function returnToMenu()
 	aitrigger = 0;
 	friendtrigger = 0;
 	p2_username = "";
+	user_id = "";
+	hostname = "       ";
 
 }
 /*---------------------------------------*/
@@ -506,7 +506,6 @@ function scrollToSettingsMenu(activate) {
         settingsMenu.classList.remove('active');
     }
 }
-
 function activateSettingsInfo() {
 	settingDisplayType = 0;
 	selectSettingDisplay();
@@ -586,8 +585,8 @@ function showSelfStats(wins, losses, rank) {
   let ratio = (wins + losses) > 0 ? (wins / (wins + losses)).toFixed(2) : "N/A";
 
   // Update the Ratio and Rank display
-  document.getElementById("Ratio").textContent = `Ratio: ${ratio}`;
-  document.getElementById("Rank").textContent = `Rank: ${rank}`;
+  document.getElementById("Ratio_self").textContent = `Ratio: ${ratio}`;
+  document.getElementById("Rank_self").textContent = `Rank: ${rank}`;
 
   // Get the canvas
   const canvas = document.getElementById('winLossChart');
@@ -631,10 +630,6 @@ function showSelfStats(wins, losses, rank) {
 
 
 
-
-
-
-
 function fetchUsers(query = '') {
     fetch(`/search_users/?q=${query}`)
         .then(response => response.json())  
@@ -675,7 +670,6 @@ function friendOptionMenu(user) {
 	selectUserDisplay(user.id);
 
     document.getElementById("userDetails").classList.add("active");
-
     document.getElementById("userUsername").innerText = user.username;
 	console.log(user.is_online);
     document.getElementById("userStatus").innerText = user.is_online;
@@ -685,7 +679,6 @@ function friendOptionMenu(user) {
     document.getElementById("blockButton").setAttribute("data-user-id", user.id);
 	document.getElementById("unblockButton").setAttribute("data-user-id", user.id);
     document.getElementById("statsButton").setAttribute("data-user-id", user.id);
-
 
     document.getElementById("sendMessageBar").setAttribute("data-user-id", user.id);
 
@@ -698,7 +691,6 @@ function friendOptionMenu(user) {
 function resetUserDetails() {
     document.getElementById("userDetails").classList.remove("active");
 }
-
 
 function activateUserStats() {
 	const UserId = document.getElementById("addFriendButton").getAttribute("data-user-id");
@@ -797,7 +789,6 @@ function showUserStats(wins, losses, rank) {
 }
 
 
-
 // Fonction pour lancer la recherche à chaque saisie dans la barre de recherche
 function searchFriends() {
     const query = document.getElementById("searchBar").value;  // Récupère la valeur de la barre de recherche
@@ -868,7 +859,6 @@ function blockUser() {
 	})
 	.catch(error => console.error("Erreur lors du blockage:", error));
 }
-
 function unblockUser() {
 	// Récupérer l'ID de l'utilisateur cible depuis l'attribut data-user-id
 	const toUserId = document.getElementById("unblockButton").getAttribute("data-user-id");
@@ -951,7 +941,6 @@ function selectUserDisplay(toUserId) {
 		   document.getElementById("ifNotFriend").style.display = friend ? "none" : "block";
 	   });
 }
-
 function showFriendList() {
 //	console.log("je rentre dans la foncition");
 	
@@ -961,7 +950,7 @@ function showFriendList() {
 		.then(response => response.json())  // On transforme la réponse en JSON
 		.then(data => {
 			const friendList = document.getElementById('friend-list');
-			friendList.innerHTML = '';  // On vide la liste avant de la remplir
+			//friendList.innerHTML = '';  // On vide la liste avant de la remplir
 
 			if (data.success && data.friends.length > 0) {
 				// Afficher chaque ami dans la liste

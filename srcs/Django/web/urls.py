@@ -12,8 +12,8 @@ urlpatterns = [
     path('search_users/', views.search_users, name='search_users'), #pour search bar
 
     path("send-friend-request/", views.send_friend_request, name="send_friend_request"), #pour la demande d'ami
-    path("unblockUser/", views.unblock_user, name="unblockUser"),
     path("blockUser/", views.block_user, name="blockUser"),
+    path("unblockUser/", views.unblock_user, name="unblockUser"),
 
     path("isUserBlocked/", views.is_user_blocked, name="isUserBlocked"),
     path("isUserFriend/", views.is_user_friend, name="isUserFriend"),
