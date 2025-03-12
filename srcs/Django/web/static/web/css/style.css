@@ -398,6 +398,230 @@ html, body {
 
 /*---------------------------------------- ELEMENT SECONDAIRE DE GAME PAGE---------------------------*/
 
+<<<<<<< Updated upstream
+=======
+/*game css SETUP*/
+
+/*MENU*/
+#test
+{
+	overflow-y: auto;
+	top:50%;
+	height: 10px;
+	position: absolute;
+}
+
+.GameOption:hover
+{
+	background-color: rgba(255, 255, 255, 0.265);
+	transform: scale(1.1);
+}
+
+.GameOption
+{
+	display:flex;
+	border: none;
+	cursor: pointer;
+	transition: transform 0.5s ease, opacity 0.5s ease;
+	background-color: transparent;
+	padding:10px;
+}
+
+.friendList
+{
+	opacity: 0;
+    visibility: hidden;
+	border-radius: 5px;
+	border-color: white;
+	max-height: 300px;;
+	height :60vw;
+	gap: 10px;
+	display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+#local, #online, #FriendTitle
+{
+	opacity: 0;
+    visibility: hidden;
+	display: none;
+}
+
+#local.active,#online.active, .friendList.active, #FriendTitle.active
+{
+	display: flex;
+	opacity: 100;
+    visibility:visible;
+}
+
+#GameMenu
+{
+	max-width: fit-content;
+	display:flex;
+    opacity: 1;
+    visibility: visible;
+	justify-content: center;
+	flex-wrap: wrap;
+	position: absolute;
+    bottom: 50%; /* Moves the menu to the middle of the bottomPage */
+    left: 50%; /* Moves the menu to the center horizontally */
+    transform: translate(-50%, 50%); /* Perfect centering */
+	transition: transform 0.5s ease, opacity 0.5s ease;
+	gap: 40px;
+}
+
+#GameMenu.inactive, #VsAi.inactive,#VsFriend.inactive
+{
+	display: none;
+	opacity: 0;
+    visibility: hidden;
+}
+
+#friendList
+{
+	left:30%;
+	width:300px;
+	position: relative;
+}
+
+/*GAME*/
+#scoreboard {
+    display: none;
+    top: 10%;
+	justify-content: space-between;
+	width: 800px;
+    max-width: 90%;
+	opacity: 0;
+	bottom: 20%;
+	flex-wrap: wrap;
+    visibility: hidden;
+	transition: transform 0.5s ease, opacity 0.5s ease;/*  Animation fluide*/
+	transform: scale(1.5);
+	position: absolute;
+}
+
+#p1-points, #p2-points {
+    color: white;
+    margin: 0; /* Remove unwanted margins */
+}
+
+#TheGame
+{
+	display:none;
+	opacity: 0;
+    visibility: hidden;
+	transition: transform 0.5s ease, opacity 0.5s ease;/*  Animation fluide*/
+	transform: scale(1.5);
+	width: 80vw;
+	max-width: 1000px;
+	height: 60vw;
+	max-height: 500px;
+	position: absolute;
+
+}
+
+#TheGame.active, #scoreboard.active, #ReturnButton.active, #winner.active
+{
+	display:flex;
+	opacity: 1;
+    visibility: visible;
+	transform: scale(1);
+}
+
+/*WINNER_SCREEN*/
+#winner
+{
+	align-items: center; /* Centre horizontalement */
+    justify-content: center; /* Centre verticalement */
+    position: absolute; /* Permet de le placer précisément */
+    top: 25%; /* Place l'élément au milieu de l'écran */
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+	flex-wrap: wrap;
+	transition: transform 0.5s ease, opacity 0.5s ease;/*  Animation fluide*/
+	transform: scale(1.5);
+	gap: 80px;
+}
+
+.returnButton
+{
+	display: inline-flex;
+	align-items: center;
+	position: absolute;
+	cursor: pointer;
+	flex-wrap: wrap;
+	border: none;
+	border-radius: 5px;
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+}
+
+.returnButton:hover, #ReturnButton:hover
+{
+	background-color: #cccccc5a;
+	transform: scale(1.05);
+}
+
+#ReturnButton
+{
+	display: none;
+	cursor: pointer;
+	border: none;
+	border-radius: 5px;
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+	background-color: transparent;
+	left: 10%;
+	bottom:10%;
+}
+
+
+#GameInvite
+{
+	display: none;
+	align-items: center;
+	transition: transform 0.5s ease, opacity 0.5s ease;
+	position: absolute;
+	top:50%;
+	gap: 20px;
+}
+
+#GameInvite.active, #loading.active
+{
+	display: inline-flex;
+}
+
+#accept, #decline
+{
+	background-color: transparent;
+	cursor: pointer;
+	flex-wrap: wrap;
+	border: none;
+	border-radius: 5px;
+}
+
+#accept:hover
+{
+	background-color: #00ff1e36;
+	transform: scale(1.05);
+}
+
+#decline:hover
+{
+	background-color: #ff000045;
+	transform: scale(1.05);
+}
+
+#loading
+{
+	display:none;
+	position: absolute;
+	top:50%;
+	
+}
+/*end of game css SETUP*/
+
+>>>>>>> Stashed changes
 
 .gameTitle
 {
