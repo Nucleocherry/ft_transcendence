@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import Q, F, FloatField, ExpressionWrapper
 from django.utils.dateparse import parse_datetime
+from django.contrib.auth import update_session_auth_hash
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -30,7 +31,10 @@ def home(request):
     return render(request, 'web/index.html', {
         'nickname': utilisateur.username,  # Passe le pseudo de l'utilisateur
         'friends': friends,  # Passe la liste des amis au template
-        'user_id': utilisateur.id  # Passe l'ID de l'utilisateur au template
+        'user_id': utilisateur.id, # Passe l'ID de l'utilisateur au template
+        "picture": utilisateur.picture,
+        "color1": utilisateur.color_1,
+        "color2": utilisateur.color_2,
     })
 
 
@@ -130,7 +134,7 @@ def get_access_token_from_code(code):
         'client_id': settings.CLIENT_ID, # Remplace par ton client_id
         'client_secret': settings.CLIENT_SECRET,  # Remplace par ton client_secret
         'code': code,  # Le code reçu dans le callback
-        'redirect_uri': 'http://localhost:8000/auth/42/callback/',  # Assure-toi que c'est la bonne URL de redirection
+        'redirect_uri': settings.REDIRECT_URI,  # Assure-toi que c'est la bonne URL de redirection
     }
 
     # Effectue la requête POST pour échanger le code contre un access token
@@ -234,13 +238,31 @@ def search_users(request):
     users = users.exclude(id=current_user.id).exclude(id__in=blocked_by_ids)
 
     user_data = [
-        {"id": user.id, "username": user.username, "is_online": user.is_online}
+        {"id": user.id, "username": user.username, "is_online": user.is_online, "image":user.picture, "color1":user.color_1, "color2":user.color_2}
         for user in users
     ]
     
     return JsonResponse({"users": user_data})
 
+@login_required
+def get_user_info(request):
+    user_id = request.GET.get("user_id")  # Récupère l'ID depuis les paramètres GET
+    if not user_id:
+        return JsonResponse({"error": "ID utilisateur manquant"}, status=400)
 
+    try:
+        user = Utilisateur.objects.get(id=user_id)
+        user_data = {
+            "id": user.id,
+            "username": user.username,
+            "is_online": user.is_online,
+            "picture": user.picture,
+            "color1": user.color_1,
+            "color2": user.color_2,
+        }
+        return JsonResponse(user_data)
+    except Utilisateur.DoesNotExist:
+        return JsonResponse({"error": "Utilisateur non trouvé"}, status=404)
 
 
 #Gestion des demandes d'ami et autre fonctions social
@@ -509,13 +531,13 @@ def is_user_friend(request):
 
 @login_required
 def showFriendList(request):
-	user = request.user  # Utilisateur actuellement connecté
-	friends = user.get_friends()  # Appel de la méthode sur l'instance de l'utilisateur
+    user = request.user  # Utilisateur actuellement connecté
+    friends = user.get_friends()  # Appel de la méthode sur l'instance de l'utilisateur
 
-	# Formater la liste des amis pour la réponse JSON
-	friends_data = [{"id": friend.id, "username": friend.username} for friend in friends]
+    # Formater la liste des amis pour la réponse JSON
+    friends_data = [{"id": friend.id, "username": friend.username} for friend in friends]
 
-	return JsonResponse({"success": True, "friends": friends_data})
+    return JsonResponse({"success": True, "friends": friends_data})
 
 @login_required
 def showFriendRequestList(request):
@@ -691,3 +713,162 @@ def get_player_stats(request):
         "losses": user.losses,
         "rank": rank
     })
+
+@login_required
+def get_user_status(request):
+    if request.method == "GET":
+        to_user_id = request.GET.get("to_user_id")  # ✅ Get target user ID from request
+        if not to_user_id:
+            return JsonResponse(
+                {"success": False, "message": "ID utilisateur manquant."}, status=400
+            )
+
+        try:
+            to_user = Utilisateur.objects.get(id=to_user_id)
+            return JsonResponse({"success": True, "user_status": to_user.is_online})
+
+        except Utilisateur.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "message": "Utilisateur introuvable."}, status=404
+            )
+
+@login_required
+def get_match_history(request):
+    user = request.user
+    user.match_history
+    print(user.match_history) 
+    return JsonResponse({"match_history": user.match_history}, status=200)
+
+@login_required
+def add_match_history(request):
+    if request.method == "POST":
+        user = request.user
+        try:
+            data = json.loads(request.body)  # Convertit le JSON en dictionnaire Python
+            opponent_username = data.get('opponent_username')
+            result = data.get('result')
+            score_player = data.get('score_player')
+            score_opponent = data.get('score_opponent')
+            user.add_match(opponent_username=opponent_username, result=result, score_player=score_player, score_opponent=score_opponent)
+            return JsonResponse({"success": True, "message": "Match added successfully."}, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Invalid JSON format."}, status=400)
+        
+    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        password_given = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
+
+        if password_given != confirm_password:
+            return JsonResponse({"status": "error", "message": "Mdp diff."}, status=400)
+
+        if not password_given:
+            return JsonResponse({"status": "error", "message": "Le mot de passe ne peut pas être vide."}, status=400)
+
+        user = request.user
+        user.password = make_password(password_given)
+        user.save()
+    
+        logout(request)  # Déconnexion de l'utilisateur
+        
+        return JsonResponse({"status": "success", "redirect": "/login/"})  # JSON propre
+    
+    return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+
+
+
+@login_required
+def change_username(request):
+    if request.method == 'POST':
+        username_given = request.POST.get('username')
+        confirm_username = request.POST.get('confirm_username')
+
+        if username_given != confirm_username:
+            return JsonResponse({"status": "error", "message": "Username diff."}, status=400)
+
+        if not username_given:
+            return JsonResponse({"status": "error", "message": "Le username ne peut pas être vide."}, status=400)
+
+        user = request.user
+        user.username = username_given
+        user.save()
+
+        update_session_auth_hash(request, user)  # Empêche la déconnexion
+
+        # return JsonResponse({"status": "success", "message": "Username changé avec succès."})
+        messages.success(request, "Nom d'utilisateur changé avec succès.")
+        return redirect('/')
+
+    return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+
+
+
+@login_required
+def update_color_1(request):
+    if request.method == "POST":
+        color_1 = request.POST.get("color_1")
+
+        if not color_1 or not color_1.startswith("#") or len(color_1) not in [4, 7]:
+            return JsonResponse({"status": "error", "message": "Format de couleur invalide."}, status=400)
+
+        user = request.user
+        user.color_1 = color_1
+        user.save()
+
+        return JsonResponse({"status": "success", "message": "Couleur 1 mise à jour.", "color_1": color_1})
+
+    return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+
+
+@login_required
+def update_color_2(request):
+    if request.method == "POST":
+        color_2 = request.POST.get("color_2")
+
+        if not color_2 or not color_2.startswith("#") or len(color_2) not in [4, 7]:
+            return JsonResponse({"status": "error", "message": "Format de couleur invalide."}, status=400)
+
+        user = request.user
+        user.color_2 = color_2
+        user.save()
+
+        return JsonResponse({"status": "success", "message": "Couleur 2 mise à jour.", "color_2": color_2})
+
+    return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+
+
+@login_required
+def update_picture(request):
+    if request.method == "POST":
+        picture = request.POST.get("picture")
+
+        if not picture:
+            return JsonResponse({"status": "error", "message": "Image invalide."}, status=400)
+
+        user = request.user
+        user.picture = picture
+        print(picture)
+        user.save()
+
+        return JsonResponse({"status": "success", "message": "Image mise à jour.", "picture": picture})
+
+    return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+
+
+
+@login_required
+def check_usernames_tournament(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+
+    usernames = request.POST.get("usernames", "").split(",")
+    if not usernames or usernames == [""]:
+        return JsonResponse({"status": "error", "message": "Aucun pseudo fourni."}, status=400)
+
+    existing_users = set(Utilisateur.objects.filter(username__in=usernames).values_list("username", flat=True))
+    missing_users = [user for user in usernames if user not in existing_users]
+
+    return JsonResponse({"status": "success", "all_exist": not missing_users, "missing": missing_users})
