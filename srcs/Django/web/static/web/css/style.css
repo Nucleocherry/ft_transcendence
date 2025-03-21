@@ -1168,7 +1168,7 @@ height: auto !important;
 #theTournament8 {
 	
 	width: 100%; /* Ajuste selon la taille souhaitée */
-	height: 100%
+	height: 100%;
     align-items: center;
     justify-content: center;
     position: relative;
@@ -1177,7 +1177,7 @@ height: auto !important;
 #theTournament8 img {
 	
     width: 100%; /* Ajuste selon la taille souhaitée */
-	height: 100%
+	height: 100%;
     position: relative;
     z-index: 0;
 }

@@ -171,50 +171,96 @@ def get_user_data_from_42(access_token):
 
 def inscription(request):
     if request.method == 'POST':
-        email_given = request.POST.get('email')
-        nickname_given = request.POST.get('nickname')  # Ici, nickname_given correspond à 'username'
-        password_given = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
+        try:
+            data = json.loads(request.body)  # ✅ Parse JSON request body
+            email_given = data.get('email')
+            nickname_given = data.get('nickname')
+            password_given = data.get('password')
+            confirm_password = data.get('confirm_password')
 
-        # Vérifier si les mots de passes correspondent
-        if password_given != confirm_password:
-            return HttpResponse('Les mots de passe sont différents.')
+            print(f"✅ Received data: Email={email_given}, Nickname={nickname_given}, Password={password_given}")
 
-        # Crypter le mot de passe
-        hashed_password = make_password(password_given)
+            # Ensure all fields are provided
+            if not email_given or not nickname_given or not password_given or not confirm_password:
+                return JsonResponse({"success": False, "message": "Tous les champs sont requis."}, status=400)
 
-        # Créer un nouvel utilisateur et l'enregistrer dans la base de données
-        utilisateur = Utilisateur(email=email_given, username=nickname_given, password=hashed_password, victory=0, is_online=True)
-        utilisateur.save()
+            # Check if username already exists
+            if Utilisateur.objects.filter(username=nickname_given).exists():
+                return JsonResponse({"success": False, "message": "Username already taken"}, status=400)
 
-        # Ajouter un message de succès après l'inscription
-        messages.success(request, 'Inscription réussie ! Vous pouvez vous connecter.')
-        auth_login(request, utilisateur)
+            # Check if email already exists
+            if Utilisateur.objects.filter(email=email_given).exists():
+                return JsonResponse({"success": False, "message": "Email already used"}, status=400)
 
-        return redirect('home')
+            # Encrypt the password
+            hashed_password = make_password(password_given)
+
+            # Create and save the user
+            utilisateur = Utilisateur(
+                email=email_given,
+                username=nickname_given,
+                password=hashed_password,
+                victory=0,
+                is_online=True
+            )
+            utilisateur.save()
+
+            # Automatically log in the user
+            auth_login(request, utilisateur)
+
+            return JsonResponse({"success": True, "message": "Inscription réussie, vous êtes maintenant connecté."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Invalid JSON format"}, status=400)
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            return JsonResponse({"success": False, "message": "Une erreur s'est produite."}, status=500)
+
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
 
 
 
 
 def connexion(request):
     if request.method == 'POST':
-        email_given = request.POST.get('email')
-        password_given = request.POST.get('password')
+        try:
+            data = json.loads(request.body)  # ✅ Parse JSON request body
+            email_given = data.get('email')
+            password_given = data.get('password')
 
-        # Trouver l'utilisateur par email
-        utilisateur = Utilisateur.objects.filter(email=email_given).first()
+            print(f"✅ Received data: Email={email_given}, Password={password_given}")
 
-        if not utilisateur:
-            return HttpResponse('Utilisateur non trouvé.')
+            # Ensure both fields are provided
+            if not email_given or not password_given:
+                return JsonResponse({"success": False, "message": "Tous les champs sont requis."}, status=400)
 
-        if not check_password(password_given, utilisateur.password):
-            return HttpResponse('Mot de passe incorrect.')
+            # Find user by email
+            utilisateur = Utilisateur.objects.filter(email=email_given).first()
 
-        # Connexion de l'utilisateur
-        auth_login(request, utilisateur)
-        utilisateur.is_online = True
-        utilisateur.save()
-        return redirect('home')
+            if not utilisateur:
+                return JsonResponse({"success": False, "message": "Email introuvable."}, status=400)
+
+            # Check password
+            if not check_password(password_given, utilisateur.password):
+                return JsonResponse({"success": False, "message": "Mauvais mot de passe."}, status=400)
+
+            # Log in the user
+            auth_login(request, utilisateur)
+
+            # Mark the user as online
+            utilisateur.is_online = True
+            utilisateur.save()
+
+            return JsonResponse({"success": True, "message": "Connection réussie, vous êtes maintenant connecté."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "message": "Format JSON invalide."}, status=400)
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            return JsonResponse({"success": False, "message": "Une erreur s'est produite."}, status=500)
+
+    return JsonResponse({"success": False, "message": "Méthode de requête invalide"}, status=405)
+
 
 
 

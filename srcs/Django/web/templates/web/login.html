@@ -18,17 +18,18 @@
     
 </head>
 <body>
+    <input type="hidden" id="csrfToken" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
-    <div class="mainPage">
+	<div class="mainLoginPage">
 
 		<button class="ApiLoginButton" onclick="connectWithApi()">
 			<img src="{% static 'web/images/42.svg' %}" alt="My Image">
 		</button>
-        
-        <!-- Grand titre -->
-        <h1 class="mainTitle">FT-TRANSCENDENCE</h1>
+		
+		<!-- Grand titre -->
+		<h1 class="mainLoginTitle">FT-TRANSCENDENCE</h1>
 
-        <!-- Cadre avec Welcome et les boutons -->
+		<!-- Cadre avec Welcome et les boutons -->
 		<div class="border-box">
 			<h2 class="welcome-text">WELCOME</h2>
 			<div class="button-container">
@@ -38,9 +39,7 @@
 
 			<!-- Formulaire de création de compte -->
 			<div id="signupForm" class="signup-form">
-				<!-- Modifié : Ajout du formulaire avec action Django -->
-				<form action="/inscription/" method="POST">
-					{% csrf_token %}
+				<form id="signupFormElement">
 					<input type="email" name="email" placeholder="Email" required>
 					<input type="text" name="nickname" placeholder="Nickname" required>
 					<input type="password" name="password" placeholder="Password" required>
@@ -49,13 +48,11 @@
 						<button type="submit" class="submitButton">Créer le compte</button>
 					</div>
 				</form>
-			</div>
-
+			</div>		
+				
 			<!-- Formulaire de connexion -->
 			<div id="loginForm" class="login-form" style="display: none;">
-				<!-- Modifié : Ajout du formulaire avec action Django -->
-				<form action="/connexion/" method="POST">
-					{% csrf_token %}
+				<form id="loginFormElement">
 					<input type="email" name="email" placeholder="Email" required>
 					<input type="password" name="password" placeholder="Password" required>
 					<div>
@@ -64,8 +61,7 @@
 				</form>
 			</div>
 		</div>
-
-    </div>
+	</div>
 
 </body>
 </html>
