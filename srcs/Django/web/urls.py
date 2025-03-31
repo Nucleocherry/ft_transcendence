@@ -3,8 +3,8 @@ from django.conf import settings
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),  # Route pour afficher la vue `home`
-    path('login/', views.login, name='login'),  # Route pour afficher la vue `login`
+    path('home/', views.home, name='home'),  # Route pour afficher la vue `home`
+
     path('inscription/', views.inscription, name='inscription'), #Route pour commencer l'inscription
     path('connexion/', views.connexion, name='connexion'),
     

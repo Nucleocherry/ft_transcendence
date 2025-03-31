@@ -2,12 +2,30 @@
 
 /*---------------------------------------- ELEMENT PRINCIPAUX---------------------------*/
 
+
 html, body {
-    margin: 0; /* Supprime les marges par défaut du navigateur */
-    padding: 0; /* Supprime les espacements internes par défaut */
-    height: 100%; /* Fait en sorte que html et body occupent toute la hauteur de la fenêtre */
-    overflow: hidden; /* Désactive les barres de défilement */
-}
+	margin: 0;
+	padding: 0;
+	height: 100%;
+  }  
+
+
+.login-container {
+	height: 100%;
+	background-color: rgb(29, 29, 29); /* Dark background */
+	color: #f7f7f7; /* Light text */
+	font-family: 'Poiret One', serif;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+  }
+
+  
+  .main-container {
+	height: 100%;
+	overflow: hidden; /* or adjust this depending on your scrolling needs */
+  }
 
 .mainPage, .bottomPage
 {

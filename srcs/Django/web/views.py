@@ -23,20 +23,22 @@ from urllib.parse import urlencode
 
 
 
-@login_required
 def home(request):
-    utilisateur = request.user  # L'utilisateur connecté
-    friends = utilisateur.get_friends()  # Utilise la méthode get_friends() pour récupérer les amis
-
-    return render(request, 'web/index.html', {
-        'nickname': utilisateur.username,  # Passe le pseudo de l'utilisateur
-        'friends': friends,  # Passe la liste des amis au template
-        'user_id': utilisateur.id, # Passe l'ID de l'utilisateur au template
-        "picture": utilisateur.picture,
-        "color1": utilisateur.color_1,
-        "color2": utilisateur.color_2,
-    })
-
+    if request.user.is_authenticated:
+        # L'utilisateur est connecté : on récupère ses données
+        friends = request.user.get_friends() if hasattr(request.user, 'get_friends') else []
+        return render(request, 'web/index.html', {
+            'nickname': request.user.username,
+            'friends': friends,
+            'user_id': request.user.id,
+            'is_authenticated': True  # Indique que l'utilisateur est connecté
+        })
+    else:
+        # L'utilisateur n'est pas connecté : on affiche le formulaire de login ou le contenu invité
+        return render(request, 'web/index.html', {
+            'nickname': "Invité",
+            'is_authenticated': False  # Indique que l'utilisateur n'est pas connecté
+        })
 
 def login(request):
     return render(request, 'web/login.html')
@@ -598,7 +600,7 @@ def showFriendRequestList(request):
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('/login/') 
+    return redirect('/home/') 
 
 
 @login_required
@@ -846,7 +848,7 @@ def change_username(request):
 
         # return JsonResponse({"status": "success", "message": "Username changé avec succès."})
         messages.success(request, "Nom d'utilisateur changé avec succès.")
-        return redirect('/')
+        return redirect('/home/')
 
     return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
 

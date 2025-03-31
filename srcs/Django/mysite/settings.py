@@ -50,9 +50,9 @@ INSTALLED_APPS = [
 ASGI_APPLICATION = 'mysite.asgi.application'
 
 CHANNEL_LAYERS = {
-	'default':{
-		'BACKEND':'channels.layers.InMemoryChannelLayer' #peut etre a changer
-	}
+    'default':{
+        'BACKEND':'channels.layers.InMemoryChannelLayer' #peut etre a changer
+    }
 }
 
 MIDDLEWARE = [
@@ -63,7 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-	'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -157,9 +157,11 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-LOGIN_URL = 'login/'  # Ou l'URL de ta vue de connexion
+LOGIN_URL = 'home/'  # Ou l'URL de ta vue de connexion
 
 # settings.py
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
+
+CSRF_TRUSTED_ORIGINS = ["https://localhost"]

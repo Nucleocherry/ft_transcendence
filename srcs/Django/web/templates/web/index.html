@@ -13,12 +13,62 @@
         <link rel="stylesheet" type="text/css" href="{% static 'web/css/style.css' %}">
         <script type="text/javascript"  src="{% static 'web/js/script.js' %}"></script>
         <script type="text/javascript"  src="{% static 'web/js/pong.js' %}"></script>
+
+		<!-- Lien vers le CSS -->
+		<link rel="stylesheet" type="text/css" href="{% static 'web/css/login.css' %}">
+		<script src="{% static 'web/js/login.js' %}"></script>
+				
 		
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<body>
+<body data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}">
     <input type="hidden" id="csrfToken" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+	<div class="login-container" id="login" style="display: flex;">
+		<div class="mainLoginPage">
+			<button class="ApiLoginButton" onclick="connectWithApi()">
+				<img src="{% static 'web/images/42.svg' %}" alt="My Image">
+			</button>
+			
+			<!-- Grand titre -->
+			<h1 class="mainLoginTitle">FT-TRANSCENDENCE</h1>
+	
+			<!-- Cadre avec Welcome et les boutons -->
+			<div class="border-box">
+				<h2 class="welcome-text">WELCOME</h2>
+				<div class="button-container">
+					<button class="loginButton" onclick="showSignupForm()">Join Us</button>
+					<button class="loginButton" onclick="showLoginForm()">Already Member</button>
+				</div>
+	
+				<!-- Formulaire de création de compte -->
+				<div id="signupForm" class="signup-form">
+					<form id="signupFormElement">
+						<input type="email" name="email" placeholder="Email" required>
+						<input type="text" name="nickname" placeholder="Nickname" required>
+						<input type="password" name="password" placeholder="Password" required>
+						<input type="password" name="confirm_password" placeholder="Confirm Password" required>
+						<div>
+							<button type="submit" class="submitButton">Créer le compte</button>
+						</div>
+					</form>
+				</div>		
+					
+				<!-- Formulaire de connexion -->
+				<div id="loginForm" class="login-form" style="display: none;">
+					<form id="loginFormElement">
+						<input type="email" name="email" placeholder="Email" required>
+						<input type="password" name="password" placeholder="Password" required>
+						<div>
+							<button type="submit" class="submitButton">Se connecter</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="main-container" id="index" style="display:none">
 
     <!-- MAIN PAGE -->
     <div id="mainPage" class="mainPage">
@@ -41,7 +91,7 @@
             <span class="material-symbols-outlined">PLAY</span>
         </button>
 
-</div> 
+	</div> 
 
 
     <!-- GAME PAGE -->
@@ -403,6 +453,7 @@
 
 		</div>
     </div>
+</div>
 
     
 

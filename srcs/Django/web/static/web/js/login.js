@@ -1,13 +1,3 @@
-function getCSRFToken() {
-    // Recherche le token CSRF dans le cookie ou dans le meta tag (selon ta config Django)
-    const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-    return csrfToken;
-}
-
-
-
-
-
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("signupForm");
 
@@ -49,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
             alert(data.message);
 
             // Now, redirect to the home page
-            window.location.href = "/"; // Redirect to the home page, where user data is fetched
+            window.location.href = "/home"; // Redirect to the home page, where user data is fetched
 
         } catch (error) {
             console.error("Erreur lors de l'inscription :", error);
@@ -97,6 +87,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+
 
 
 

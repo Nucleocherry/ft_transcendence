@@ -1,4 +1,27 @@
 let MenuTrigger = 0;
+/*-----------------------LOGIN PAGE--------------------------------*/
+window.onload = is_loged;
+
+function is_loged() {
+    let isAuthenticated = document.body.getAttribute("data-authenticated") === "true";
+	if (isAuthenticated === true)
+		showMainPage();
+	else
+		showLoginPage();
+}
+
+
+
+function showMainPage() {
+	document.getElementById('login').style.display = 'none';
+	document.getElementById('index').style.display = 'block';
+  }
+  
+  function showLoginPage() {
+	document.getElementById('index').style.display = 'none';
+	document.getElementById('login').style.display = 'block';
+  }
+
 
 /*------------------------ SETUP WEBSOCKET ------------------------- */
 
