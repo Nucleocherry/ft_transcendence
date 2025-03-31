@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		constructor(x, y) {
 			this.x = x;
 			this.y = y;
-			this.points = 9;
+			this.points = 4;
 		}
 
 		movePlayer(y) {
@@ -123,13 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			else if ((this.x <= width / 2 || this.x >= canvas.width - width / 2) && (!this.isPlayerHit(p2) || !this.isPlayerHit(p1))) {
 					if (this.x <= width / 2 )
 					{
-						if (p2.points < 10)
+						if (p2.points < 5)
 							p2.points++;
 						this.dx = -1; // Reset speed
 					}
 					else
 					{
-						if (p1.points < 10)
+						if (p1.points < 5)
 							p1.points++;
 						this.dx = 1;
 					}
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		TheGame.classList.remove('active');
 		scoreboard.classList.remove('active');
 		winText.innerText = "";
-		if (p1.points === 10)
+		if (p1.points === 5)
 			winText.innerText += "Player one won !";
 		else
 			winText.innerText += "Player two won !";
@@ -243,10 +243,10 @@ document.addEventListener('DOMContentLoaded', () => {
 			movement();
 		if (trigger === 1 && (aitrigger === 1 || (friendtrigger === 1 && hostname != p2_username) || localtrigger === 1))// to change on setup
 				ball.moveBall(p1, p2);
-		if (p1.points === 10 || p2.points == 10)
+		if (p1.points === 5 || p2.points == 5)
 		{
 			let result;
-			if (p1.points === 10 && friendtrigger === 1)
+			if (p1.points === 5 && friendtrigger === 1)
 			{
 				result = "win";
 				fetch('/increment_victory/', {
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					}
 				})
 			}
-			if (p2.points === 10 && friendtrigger === 1)
+			if (p2.points === 5 && friendtrigger === 1)
 			{
 				result = "lose"
 				fetch('/increment_losses/', {
@@ -343,16 +343,9 @@ function bloodMode() {
     if (!bloodButton) return; // Empêche une erreur si le bouton n'existe pas
 
     blood_mode = blood_mode === 0 ? 1 : 0; // Bascule entre 0 et 1
-
-
-
     color = blood_mode ? "#8B0000" : color;
     skin = blood_mode ? "orange" : skin;
 	speed = blood_mode ? 3 : 2;
-
-
-
-
     bloodButton.textContent = blood_mode ? "BLOOD MODE ON" : "BLOOD MODE OFF";
 	console.log("color = ", color);
 	console.log("TIME FOR A BLOODY MOON");

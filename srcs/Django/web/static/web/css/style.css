@@ -193,7 +193,7 @@ html, body {
 }
 
 /* Élément de la liste */
-#results button, #friendList button {
+#results button{
     font-size: 15px;
 	font-weight: normal;
     font-family: 'Poiret One', serif;
@@ -219,7 +219,7 @@ html, body {
     flex: 0.5; /* Tous les boutons se rétrécissent légèrement */
 }
 
-#results button:hover , #friendList button:hover{
+#results button:hover {
 	font-weight: bolder;
     flex: 3; /* Le bouton survolé grandit */
     max-width: 50%; /* S'étend jusqu'à 80% si possible */
@@ -357,7 +357,7 @@ html, body {
     padding: 10px;
 }
 
-#friend-list button {
+#friend-list button, #friendList button {
     font-size: 15px;
     font-family: 'Poiret One', serif;
     flex: 1 1 calc(25% - 10px); /* Prend 25% de la largeur moins l'espace entre les éléments */
@@ -375,7 +375,7 @@ html, body {
     text-align: center;
 }
 
-#friend-list button:hover {
+#friend-list button:hover , #friendList button:hover{
 	font-weight: bolder;
     color: #191919;
     background-color: #f7f7f7;
@@ -987,7 +987,7 @@ height: auto !important;
 	border-color: white;
 	max-height: 300px;;
 	height :60vw;
-	gap: 10px;
+	gap: 30px;
 	display: flex;
     align-items: center;
     flex-direction: column;
@@ -1034,6 +1034,7 @@ height: auto !important;
 {
 	left:30%;
 	width:300px;
+	gap: 30px;
 	position: relative;
 }
 

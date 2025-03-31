@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("🌐 Initialisation du WebSocket...");
 
     // Définition de l'URL WebSocket
-    let url = `ws://${window.location.host}/ws/socket-server/`;
+    let url = `wss://${window.location.host}/ws/socket-server/`;
     window.mySocket = new WebSocket(url);
 
     // Connexion réussie
@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			returnButton.classList.add('active');
 			user_id = "";
 			p2_username = "";
-			cant_play.innerText = "can't send game invite: p2 is already in game";
+			cant_play.innerText = "P2  declined";
 			cant_play.classList.add('active');
 			p2_username = '';
 			MenuTrigger = 3;
@@ -202,6 +202,8 @@ function returnToPreviousMenu()
 		online.classList.add('active');
 		friendTitle.classList.remove('active');
 		friendMenu[0].classList.remove('active');
+		tournament4.classList.remove('active');
+		tournament8.classList.remove('active');
 	}
 	else if (MenuTrigger === 3)
 	{
@@ -216,15 +218,21 @@ function returnToPreviousMenu()
 
 		online.classList.remove('active');
 		local.classList.remove('active');
-	
-		tournament4.classList.add('active');
-		tournament8.classList.add('active');
 
 		tournamentForm4.classList.remove('active');
 		tournamentForm8.classList.remove('active');
 		
 	
 		returnButton.classList.add('active');
+	}
+	else if (MenuTrigger === 4)
+	{
+		MenuTrigger = 2;
+
+		tournamentForm4.classList.remove('active');
+		tournamentForm8.classList.remove('active');
+		tournament4.classList.add('active');
+		tournament8.classList.add('active');
 	}
 }
 
@@ -344,7 +352,7 @@ function activateTournament8()
 	let tournamentForm4 = document.getElementById('theTournament4');
 	let tournamentForm8 = document.getElementById('theTournament8');
 
-	MenuTrigger = 3;
+	MenuTrigger = 4;
 
 
 	VsAi.classList.add('inactive');
@@ -379,7 +387,7 @@ function activateTournament4()
 	let tournamentForm4 = document.getElementById('theTournament4');
 	let tournamentForm8 = document.getElementById('theTournament8');
 
-	MenuTrigger = 3;
+	MenuTrigger = 4;
 
 
 	VsAi.classList.add('inactive');
@@ -427,7 +435,9 @@ function handleGameInvite(_data)
 	let friendTitle = document.getElementById('FriendTitle');
 	let returnButton = document.getElementById('ReturnButton');
 	let winner = document.getElementById('winner');
-
+	let tournament4 = document.getElementById('tournament4');
+	let tournament8 = document.getElementById('tournament8');
+	let tournamentButton = document.getElementById('Tournament');
 
 	
 //	console.log("_data.hostname:", _data.hostname);
@@ -448,6 +458,9 @@ function handleGameInvite(_data)
 			returnButton.classList.remove('active');
 			winner.classList.remove('active');
 			GameInvite.classList.add('active');
+			tournament4.classList.remove('active');
+			tournament8.classList.remove('active');
+			tournamentButton.classList.add('inactive');
 		}
 	})
 	hostname = _data.hostname;
