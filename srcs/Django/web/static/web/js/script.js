@@ -151,12 +151,12 @@ function showMatchHistory() {
         matchHistory.innerHTML = '';  // Clear existing matches
 
         if (data.match_history.length === 0) {
-            matchHistory.innerHTML = '<p>No matches found.</p>';
+            matchHistory.innerHTML = '<p class="user-info">No matches found.</p>';
         } else {
             data.match_history.forEach(match => {
                 matchHistory.insertAdjacentHTML(
                     'beforeend',
-                    `<li>Opponent: ${match.opponent} | Result: ${match.result} | Score: ${match.score_player} - ${match.score_opponent}</li>`
+                     `<li class="user-info">Opponent: ${match.opponent} | Result: ${match.result} | Score: ${match.score_player} - ${match.score_opponent}</li>`
                 );
             });
         }
@@ -1140,6 +1140,8 @@ function blockUser() {
 	.then(response => response.json())
 	.then(result => {
 		selectUserDisplay(toUserId);
+		showFriendList();
+		showFriendRequestList();
 	})
 	.catch(error => console.error("Erreur lors du blockage:", error));
 }
@@ -1234,7 +1236,7 @@ function showFriendList() {
 		.then(response => response.json())  // On transforme la réponse en JSON
 		.then(data => {
 			const friendList = document.getElementById('friend-list');
-			//friendList.innerHTML = '';  // On vide la liste avant de la remplir
+			friendList.innerHTML = '';  // On vide la liste avant de la remplir
 
 			if (data.success && data.friends.length > 0) {
 				// Afficher chaque ami dans la liste

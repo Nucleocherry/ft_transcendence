@@ -39,7 +39,7 @@ function move_remote_ball(data)
 document.addEventListener('DOMContentLoaded', () => {
 	const canvas =  document.getElementById("TheGame");
 	const ctx = canvas.getContext("2d");
-	p1_username = document.getElementById('username').innerText.replace("Votre Username : ", '');
+	p1_username = document.getElementById('username').innerText.replace("username: ", '');
 /*----------------------END-SETUP--------------------------------------------------*/
 	class Player {
 		constructor(x, y) {

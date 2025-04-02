@@ -277,6 +277,7 @@ html, body {
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
     transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
 }
+
 .userStats.active {
     transform: translateX(0); /* Fait glisser le panneau à l'écran */
     opacity: 1; /* Le rend visible */
@@ -351,6 +352,7 @@ html, body {
 
 #friend-list {
 	display: flex;
+	flex-direction: row;
     flex-wrap: wrap; /* Permet aux éléments de passer à la ligne si nécessaire */
     justify-content: space-between; /* Répartit l'espace de manière équilibrée */
     background-color: none; /* Pour voir où l'élément se trouve */
@@ -903,24 +905,41 @@ height: auto !important;
 /*LOGOUT-BUTTON*/
 #logoutButton
 {
+	font-family: 'Poiret One', serif;
     position: absolute;
-    bottom: 10px;
+    bottom: 30px;
     right: 10px;
+	font-size: 20px;
+
+	color: #f7f7f7;  /* Set your desired color */
+    text-decoration: none; /* Remove underline */
+
+	display: flex;
+    align-items: center; /* Aligne verticalement */
+    gap: 5px; /* Espacement entre le texte et l'icône */
+	transition: transform 0.5s ease-in-out, border-bottom 0.5s ease-in-out;
+}
+
+#lougoutButton:hover {
+	transform: scale(1.1);
+	border-bottom: #f7f7f7;
+
 }
 /*------------*/
 
 
 /*---------------------------------------- ELEMENT SECONDAIRE DE MAIN PAGE---------------------------*/
-.mainTitle
-{
-	font-family: 'Poiret One', serif;/*defini la police du texte*/
-	color: #f7f7f7; /* Définit une couleur de title en blanc casse (optionnel) */
+.mainTitle {
+    font-family: 'Poiret One', serif; /* Define font */
+    color: #f7f7f7; /* Light white */
     font-weight: bold;
     letter-spacing: 5px;
     text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.2);
-	size: 200%;
+    font-size: 200%; /* Use font-size instead of 'size' (which is invalid) */
+    transition: text-shadow 1.5s ease-in-out;
+    cursor: default;
+	gap: 0;
 }
-
 
 /*play BUTTON SETUP*/
 .playButton
@@ -928,19 +947,40 @@ height: auto !important;
 	background-color: transparent; /*permet d'enlever le fond blanc moche*/
 	font-family: 'Poiret One', serif;/*defini la police du texte*/
 	color: #000000; /* Définit une couleur de title en noir (optionnel) */
-	border: none; /*enleve l'effet de bordure moche de base en html*/
-    border-radius: 5px; /* ajoute un effet pour smooth les bords*/
-
-	
+    border-radius: 50px; /* ajoute un effet pour smooth les bords*/
+	border: solid 3px #f7f7f7;
+    width: 8vw; /* Use viewport width for responsiveness */
 
 	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
-    transition: transform 0.3s ease, color 0.3s ease;  /* Transition pour l'effet de hover */
+    transition: background-color 0.3s ease;  /* Transition pour l'effet de hover */
+	transition: width 0.3s ease;
 }
 
 .playButton:hover {
+	width: 20vw;
     background-color: #3d3d3d; /*change la couleur de fond quand on clique */
-    transform: scale(1.05); /* Agrandit légèrement l'élément */
 }
+
+.simple-button {
+	background-color: transparent; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #f7f7f7; /* Définit une couleur de title en noir (optionnel) */
+    border-radius: 5px; /* ajoute un effet pour smooth les bords*/
+	border: solid 2px #f7f7f7;
+	width: auto;
+	height: auto;
+	padding: 3px;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: background-color 0.3s ease;  /* Transition pour l'effet de hover */
+	transition: transform 0.3s ease;
+}
+
+.simple-button:hover {
+	transform: scale(1.1);
+    background-color: #3d3d3d; /*change la couleur de fond quand on clique */
+}
+
 /*END OF play BUTTON SETUP*/
 
 
@@ -955,14 +995,6 @@ height: auto !important;
 /*game css SETUP*/
 
 /*MENU*/
-#test
-{
-	overflow-y: auto;
-	top:50%;
-	height: 10px;
-	position: absolute;
-}
-
 .GameOption:hover
 {
 	background-color: rgba(255, 255, 255, 0.265);
@@ -972,25 +1004,48 @@ height: auto !important;
 .GameOption
 {
 	display:flex;
-	border: none;
+	align-content: center;
+	justify-content: center;
+	border: solid 3px #f7f7f7;
 	cursor: pointer;
 	transition: transform 0.5s ease, opacity 0.5s ease;
 	background-color: transparent;
 	padding:10px;
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #f7f7f7; /* Définit une couleur de title en noir (optionnel) */
+	font-size: 54px;
+	font-weight: bold;
+}
+
+#friendList
+{
+	border-radius: 5px;
+	border-color: white;
+	height: 60vw;
+	max-height: 213px;
+	display: flex;
+    flex-direction: column;
+	overflow-y: scroll;
+  	width: inherit;
+	margin: 0;
+	padding: 0;
+}
+
+#friendList button
+{
+	border: none;
 }
 
 .friendList
 {
+	width: 60vw;
+	max-width: 300px;
 	opacity: 0;
     visibility: hidden;
-	border-radius: 5px;
-	border-color: white;
-	max-height: 300px;;
-	height :60vw;
-	gap: 30px;
 	display: flex;
-    align-items: center;
-    flex-direction: column;
+	align-items: center;
+ 	border-radius: 5px;
+ 	border: outset white;
 }
 
 #local, #online, #tournament4,#tournament8, #theTournament4, #theTournament8, #FriendTitle
@@ -1014,6 +1069,7 @@ height: auto !important;
     opacity: 1;
     visibility: visible;
 	justify-content: center;
+	flex-direction: column;
 	flex-wrap: wrap;
 	position: absolute;
     bottom: 50%; /* Moves the menu to the middle of the bottomPage */
@@ -1028,14 +1084,6 @@ height: auto !important;
 	display: none;
 	opacity: 0;
     visibility: hidden;
-}
-
-#friendList
-{
-	left:30%;
-	width:300px;
-	gap: 30px;
-	position: relative;
 }
 
 /*GAME*/
@@ -1107,6 +1155,7 @@ height: auto !important;
 	flex-wrap: wrap;
 	border: none;
 	border-radius: 5px;
+	
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
 }
 
@@ -1124,8 +1173,8 @@ height: auto !important;
 	border-radius: 5px;
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
 	background-color: transparent;
-	left: 10%;
 	bottom:10%;
+	position: absolute;
 }
 
 
@@ -1257,9 +1306,15 @@ height: auto !important;
 
 
 
-
-
-
+.user-info {
+	font-family: 'Poiret One', serif;
+	font-weight: 100;
+	font-size: 22px;
+	white-space: nowrap;
+	/*overflow: hidden;
+	//text-overflow: ellipsis;*/
+	margin: 3px;
+}
 
 /*---------------------------------------- GOOGLE FONT UTILS---------------------------*/
 .material-symbols-outlined {

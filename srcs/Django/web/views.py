@@ -31,7 +31,10 @@ def home(request):
             'nickname': request.user.username,
             'friends': friends,
             'user_id': request.user.id,
-            'is_authenticated': True  # Indique que l'utilisateur est connecté
+            'is_authenticated': True,
+			"picture": request.user.picture,
+			"color1": request.user.color_1,
+			"color2": request.user.color_2,
         })
     else:
         # L'utilisateur n'est pas connecté : on affiche le formulaire de login ou le contenu invité
@@ -42,8 +45,6 @@ def home(request):
 
 def login(request):
     return render(request, 'web/login.html')
-
-
 
 #API CONNECTION
 

@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             alert("Connexion réussie !");
-            window.location.href = "/"; // Redirect on success
+            window.location.href = "/home"; // Redirect on success
         } catch (error) {
             console.error("Erreur lors de la connexion :", error);
             alert("Une erreur s'est produite. Veuillez réessayer.");

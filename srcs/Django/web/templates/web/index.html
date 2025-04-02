@@ -31,7 +31,7 @@
 			</button>
 			
 			<!-- Grand titre -->
-			<h1 class="mainLoginTitle">FT-TRANSCENDENCE</h1>
+			<h1 class="mainLoginTitle">TRANSCENDENCE</h1>
 	
 			<!-- Cadre avec Welcome et les boutons -->
 			<div class="border-box">
@@ -87,8 +87,7 @@
         </button>
 
         <button class="playButton" onclick="scrollToBottom()">
-            <span class="material-symbols-outlined">play_circle</span>
-            <span class="material-symbols-outlined">PLAY</span>
+			<span class="material-symbols-outlined">play_arrow</span>
         </button>
 
 	</div> 
@@ -113,28 +112,35 @@
 
 
 		<center><div id="GameMenu">
+
 			<span id="VsAi" onclick="activateAiGame()" class="GameOption" >
 				<span class="material-symbols-outlined">smart_toy</span>
-				<span class="material-symbols-outlined">Vs Ai</span>
-			</span>
-			<span id="VsFriend" onclick="activateFriendMenu()" class="GameOption">
-				<span class="material-symbols-outlined">swords</span>
-				<span class="material-symbols-outlined">Vs Friend</span>
-			</span>
-			
-			<span id="Tournament" onclick="activateTournament()" class="GameOption">
-				<span class="material-symbols-outlined">emoji_events</span>
-				<span class="material-symbols-outlined">Competitions</span>
+				<span> VS AI</span>
 			</span>
 
 			<span id="local" onclick="activateLocalGame()" class="GameOption">
 				<span class="material-symbols-outlined">public_off</span>
-				<span class="material-symbols-outlined">Local</span>
+				<span> LOCAL</span>
+			</span>
+
+			<span id="VsFriend" onclick="activateFriendMenu()" class="GameOption">
+				<span class="material-symbols-outlined">swords</span>
+				<span> VS FRIEND</span>
+			</span>
+
+			<span id="Tournament" onclick="activateTournament()" class="GameOption">
+				<span class="material-symbols-outlined">emoji_events</span>
+				<span> TOURNAMENT</span>
 			</span>
 			<span id="online" onclick="ShowFriendList_game()" class="GameOption">
 				<span class="material-symbols-outlined">language</span>
-				<span class="material-symbols-outlined">Online</span>
+				<span> ONLINE</span>
 			</span>
+
+
+
+			
+
 			<span id="tournament4"  onclick="activateTournament4()" class="GameOption">
 				<span class="material-symbols-outlined">looks_4</span>
 				<span class="material-symbols-outlined">Volunteers</span>
@@ -184,8 +190,7 @@
 
 		</div></center>
 
-
-		<h1 id="FriendTitle" class="material-symbols-outlined" style="color: white; font-family: 'Poiret One', serif">Friend List</h1>
+		<h1 id="FriendTitle" class="material-symbols-outlined" style="color: white; font-family: 'Poiret One', serif; position: absolute; top:10%;">Friend List</h1>
 		<div class="friendList">
 				<ul id = "friendList"></ul>
 		</div>
@@ -342,13 +347,7 @@
 
 			</div>
 		</div>
-	
-	
-	
-	
-		
-		
-	
+
 	
 	<!-- HERE IS THE SETTINGS MENU -->
     <div id="settingsMenu" class="settingsMenu">
@@ -358,7 +357,6 @@
 		data-picture="{{ picture }}">
 	</div>
         <h1 class="smallerTitle">Settings</h1>
-        <p id="username">Votre Username : {{ request.user.username }}</p>
 		<div class="image-container" id="imageContainer">
 			<img src="{% static 'web/images/pdp_alien.png' %}" 
 					alt="My pdp" 
@@ -394,10 +392,10 @@
 		
 		<div id="SettingsInfo" style="display: block;">
 			<h1 class="simpleText">Info</h1>
-			<h2 id="username">{{ request.user.username }}</h2>
-			<h2 class="simpleText"> {{ request.user.email }}</h2>
+			<h2 class="user-info" id="username">username: {{ request.user.username }}</h2>
+			<h2 class="user-info">email: {{ request.user.email }}</h2>
 			<h2 class="simpleText" id="matchHistory_title">Match History</h2>
-			<ul id="matchHistory" style="overflow-y:scroll; height: 200px;"></ul>
+			<ul id="matchHistory" style="overflow-y:scroll; overflow-x:scroll; height: 200px; padding: 0;"></ul>
 		</div>
 		<div id="SettingsStats" style="display: none;">
 			<h1 class="simpleText">Stats</h1>
@@ -413,7 +411,7 @@
 			<h1 class="simpleText">Settings</h1>
 			<input type="color" id="colorPickerA" class="colorPicker" placeholder="{{ color1 }}">
 			<input type="color" id="colorPickerB" class="colorPicker" placeholder="{{ color2 }}">
-			<button onclick="submitColors()">Enregistrer</button>
+			<button class="simple-button" onclick="submitColors()">Enregistrer</button>
 
 			<button class="SettingsSetting_Button" data-target="usernameChangeForm">Change Username</button>
 			<form id="usernameChangeForm" action="/change_username/" method="POST" style="display: none;">
@@ -441,10 +439,9 @@
 			
 
 		<button id="BloodButton" class="SettingsSetting_BloodButton" onclick="bloodMode()">BLOOD MODE OFF</button>
-		<button id="basicButton" class="SettingsSetting_BloodButton" onclick="baseMode()">BASIC MODE OFF</button>
+		<button id="basicButton" class="SettingsSetting_Button" onclick="baseMode()">BASIC MODE OFF</button>
 
-			<a style="right: 10px;" href="{% url 'logout' %}" id="logoutButton"><span class="material-symbols-outlined">logout</span></a>
-			
+		<a class="logout-button" href="{% url 'logout' %}" id="logoutButton"> Logout <span class="material-symbols-outlined icon-smaller">logout</span></a>
 		</div>
 
 		</div>
