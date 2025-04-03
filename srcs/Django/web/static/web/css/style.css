@@ -2,12 +2,30 @@
 
 /*---------------------------------------- ELEMENT PRINCIPAUX---------------------------*/
 
+
 html, body {
-    margin: 0; /* Supprime les marges par défaut du navigateur */
-    padding: 0; /* Supprime les espacements internes par défaut */
-    height: 100%; /* Fait en sorte que html et body occupent toute la hauteur de la fenêtre */
-    overflow: hidden; /* Désactive les barres de défilement */
-}
+	margin: 0;
+	padding: 0;
+	height: 100%;
+  }  
+
+
+.login-container {
+	height: 100%;
+	background-color: rgb(29, 29, 29); /* Dark background */
+	color: #f7f7f7; /* Light text */
+	font-family: 'Poiret One', serif;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+  }
+
+  
+  .main-container {
+	height: 100%;
+	overflow: hidden; /* or adjust this depending on your scrolling needs */
+  }
 
 .mainPage, .bottomPage
 {
@@ -17,31 +35,65 @@ html, body {
     justify-content: center; /* Centre horizontalement le contenu interne *(donc tout a l'interieur comme main title)*/
     align-items: center; /* Centre verticalement le contenu interne */
 	flex-direction: column;  /* Aligne les éléments en colonne pour eviter que le button play soit a droite du titre */
-    background-color: rgb(0, 0, 0); /* Définit une couleur de fond NOIR  */
-
+	background-color: rgb(29, 29, 29); /* Définit une couleur de fond NOIR  */
 	position: relative; /*Comme ca la fleche dans .bottomPage ne reste pas en haut aussi sur .mainPage*/
 
 }
+/*---------NOTIF---------*/
+#notif-box {
+    position: fixed;
+    top: 20px;
+    background: #000000;
+    color: white;
+    padding: 10px 5px;
+    border-radius: 15px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+	border: 2px #444;
 
 
 
+    /* Animation */
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
 
+.hide {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
+}
 
+.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+/*----------------------*/
+/*----- MENU TOOLS ------*/
+.smallerTitle
+{
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #f7f7f7; /* Définit une couleur de title en blanc casse (optionnel) */
+    font-weight: bold;
+    letter-spacing: 5px;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.2);
+	size: 100%;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+.simpleText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poiret One', serif;
+    color: #f7f7f7;
+    font-weight: bold;
+    letter-spacing: 1px; /* Resserre l'espacement des lettres */
+    size: 75%;
+    border-bottom: 2px solid #f7f7f7; /* Ajoute une ligne droite à droite du texte */
+    padding-right: 10px; /* Ajoute un petit espace entre le texte et la ligne */
+}
 /* friend menu things */
 .friendMenu {
     position: fixed;  /* Permet de garder le menu visible en permanence */
@@ -103,44 +155,101 @@ html, body {
 
 /* Style de la barre de recherche */
 #searchBar {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
+    width: 40%;
+    padding: 12px;
+    margin-bottom: 15px;
     font-size: 16px;
-    border: 1px solid #ccc;
+    font-family: 'Poiret One', serif;
+    color: #f7f7f7; /* Texte blanc */
+    background-color: #191919; /* Fond noir */
+    border: 1px solid #444; /* Bordure légèrement plus claire que le fond */
     border-radius: 5px;
+    outline: none; /* Supprime la bordure par défaut lors du focus */
+    transition: border-color 0.3s ease; /* Transition douce pour le focus */
+    transition: width 0.5s ease;
 }
 
-/* Container des résultats */
-.friendResults {
+/* Style au focus (quand la barre est sélectionnée) */
+#searchBar:focus {
+    width: 80%;
+    border-color: #f7f7f7; /* Bordure blanche pour mettre en évidence */
+}
+
+/* Placeholder (texte d'exemple) */
+#searchBar::placeholder {
+    color: #888; /* Placeholder gris pour contraster avec le fond noir */
+    opacity: 1; /* Assure que le placeholder est bien visible */
+}
+
+/* style du resultat search bar */
+/* Liste des résultats */
+#results {
     display: flex;
-    /* flex-wrap: wrap; Pour permettre plusieurs lignes */
-	flex-direction: column; /* Aligne les éléments verticalement */
-    gap: 10px; /* Espacement entre les cases */
+    flex-wrap: wrap; /* Permet le retour à la ligne si nécessaire */
+    width: 100%;
+    padding: 0;
     margin-top: 10px;
+    transition: 0.5s ease;
 }
 
-/* Style pour chaque "case" utilisateur */
-.friendResults .friendCard {
+/* Élément de la liste */
+#results button{
+    font-size: 15px;
+	font-weight: normal;
+    font-family: 'Poiret One', serif;
+    flex: 1; /* Tous les boutons prennent une part égale */
+    min-width: 10%;
+    max-width: 20%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     padding: 10px;
-    border: 1px solid #ff1313;
-    border-radius: 8px;
-    background-color: #f5f5f5;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
-    min-width: 100px;
+    border: 1px solid #444;
+    color: #f7f7f7;
+    background-color: #191919;
+    border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: 0.5s ease;
+    text-align: center;
 }
 
 
-.friendResults .friendCard:hover {
-    background-color: #2b1d1d;
+/* Effet au survol */
+#results:hover button {
+    flex: 0.5; /* Tous les boutons se rétrécissent légèrement */
 }
 
+#results button:hover {
+	font-weight: bolder;
+    flex: 3; /* Le bouton survolé grandit */
+    max-width: 50%; /* S'étend jusqu'à 80% si possible */
+    color: #191919;
+    background-color: #f7f7f7;
+}
 
+/* Style des éléments de liste */
+#results li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    transition: 0.2s;
+    text-align: center;
+    color: #888;
+}
+
+.userName
+{
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;	
+	font-family: 'Poiret One', serif;
+	color: #f7f7f7;
+    letter-spacing: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+	width: 70%;
+}
 
 .userDetails.active {
     transform: translateX(0); /* Fait glisser le panneau à l'écran */
@@ -169,6 +278,33 @@ html, body {
     transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
 }
 
+.userStats.active {
+    transform: translateX(0); /* Fait glisser le panneau à l'écran */
+    opacity: 1; /* Le rend visible */
+}
+
+.userStats.not_active {
+    display: none;
+}
+
+.userStats {
+    position: fixed;  /* Permet de garder le menu visible en permanence */
+    top: 20px;  /* Décale un peu le menu du haut */
+    left: 0px;  /* Positionne le menu hors de la fenêtre à gauche */
+
+    width: 100%;  /* Largeur du menu */
+
+    height: calc(100% - 40px);  /* Occupe presque toute la hauteur de l'écran */
+    background-color: #222;  /* Couleur de fond pour le menu */
+    color: white;  /* Couleur du texte */
+    padding: 20px;  /* Espacement interne */
+    z-index: 1002;  /* Assure que le menu soit au-dessus des autres éléments */
+    border-radius: 15px; /* Arrondir les bords */
+    opacity: 0; /* Le rend invisible */
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
+    transform: translateX(-100%); /* Cache le panneau entièrement hors écran */
+}
+
 #userStatus {
     display: inline-flex;
     align-items: center;
@@ -182,10 +318,69 @@ html, body {
     display: inline-block;
 }
 
-#friend-list {
+#friend-request-list {
+    display: flex;
+    flex-wrap: wrap; /* Permet aux éléments de passer à la ligne si nécessaire */
+    justify-content: space-between; /* Répartit l'espace de manière équilibrée */
     background-color: none; /* Pour voir où l'élément se trouve */
     padding: 10px;
-    list-style-type: none;
+}
+
+#friend-request-list button {
+    font-size: 15px;
+    font-family: 'Poiret One', serif;
+    flex: 1 1 calc(25% - 10px); /* Prend 25% de la largeur moins l'espace entre les éléments */
+    min-width: 75px; /* Assure une largeur minimale pour éviter que les boutons deviennent trop petits */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px;
+    border: 1px solid #444;
+    color: #f7f7f7;
+    background-color: #191919;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.5s ease;
+    text-align: center;
+}
+
+#friend-request-list button:hover {
+	font-weight: bolder;
+    color: #191919;
+    background-color: #f7f7f7;
+}
+
+#friend-list {
+	display: flex;
+	flex-direction: row;
+    flex-wrap: wrap; /* Permet aux éléments de passer à la ligne si nécessaire */
+    justify-content: space-between; /* Répartit l'espace de manière équilibrée */
+    background-color: none; /* Pour voir où l'élément se trouve */
+    padding: 10px;
+}
+
+#friend-list button, #friendList button {
+    font-size: 15px;
+    font-family: 'Poiret One', serif;
+    flex: 1 1 calc(25% - 10px); /* Prend 25% de la largeur moins l'espace entre les éléments */
+    min-width: 75px; /* Assure une largeur minimale pour éviter que les boutons deviennent trop petits */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px;
+    border: 1px solid #444;
+    color: #f7f7f7;
+    background-color: #191919;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.5s ease;
+    text-align: center;
+}
+
+#friend-list button:hover , #friendList button:hover{
+	font-weight: bolder;
+    color: #191919;
+    background-color: #f7f7f7;
 }
 
 .online {
@@ -213,35 +408,7 @@ html, body {
 }
 /* end of friend menu things */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*---------------------------------------- SETTING MENU ---------------------------*/
 
 .settingsMenu {
     position: fixed;  /* Permet de garder le menu visible en permanence */
@@ -258,7 +425,7 @@ html, body {
     opacity: 0; /* Le rend invisible */
     border-radius: 15px; /* Arrondir les bords */
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
-    z-index: 1001; /* Assure que le menu soit au-dessus des autres éléments */
+    z-index: 1000; /* Assure que le menu soit au-dessus des autres éléments */
 }
 
 .settingsMenu.active {
@@ -290,6 +457,50 @@ html, body {
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
     z-index: 1000; /* Assure que le menu soit au-dessus des autres éléments */
 }
+.image-container {
+	border: 2px solid #ffffff;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    background-color: white; /* Default color */
+    display: flex;
+    align-items: center;
+}
+
+.pdp {
+	cursor: pointer;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.colorPicker {
+	margin: 5px;
+	-webkit-appearance: none;
+    appearance: none;
+    width: 25%;
+	border: 2px solid #ffffff;
+    border-radius: 10%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Effet de survol */
+.colorPicker:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Effet de clic */
+.colorPicker:active {
+    transform: scale(0.95);
+}
 
 .settingsProfileDetails.active {
     transform: translateX(0); /* Fait glisser le panneau à l'écran */
@@ -299,6 +510,95 @@ html, body {
 .settingsProfileDetails.not_active {
     display: none;
 }
+.statsTextWrapper {
+font-family: 'Poiret One', serif;
+display: flex;
+align-items: center; /* Align items vertically */
+justify-content: space-between; /* Align items to the start (left) */
+gap: 10px; /* Add some space between elements */
+}
+
+.chart-wrapper {
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.chartSelf {
+width: 75% !important;
+height: auto !important;
+}
+.SettingsSetting_Button
+{
+	display: flex;  /* Active Flexbox */
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement (optionnel) */
+
+	background-color: #191919; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #ffffff; /* Définit une couleur de title en noir (optionnel) */	
+
+	font-size: 1.2em; /* 1.2 fois la taille de la police de l'élément parent */
+	border-radius: 10px;
+	width: 100%;
+	height: 40%;
+	padding: 0;
+
+	line-height: auto;
+
+	border: 2px solid #ffffff;
+	border-color: white;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: 0.3s ease;  /* Transition pour l'effet de hover */
+
+	flex-grow: 1; /* Fait en sorte que les boutons prennent toute la largeur disponible de manière égale */
+    margin: 0 5px;  /* Espace entre les boutons */
+	gap: 5px;
+}
+
+.SettingsSetting_Button:hover {
+    transform: scale(1.1); /* Agrandit légèrement l'élément */
+}
+
+
+.SettingsSetting_BloodButton
+{
+	display: flex;  /* Active Flexbox */
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement (optionnel) */
+
+	background-color: #191919; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #ffffff; /* Définit une couleur de title en noir (optionnel) */	
+
+	font-size: 1.2em; /* 1.2 fois la taille de la police de l'élément parent */
+	border-radius: 10px;
+	width: 100%;
+	height: 40%;
+	padding: 0;
+
+	line-height: auto;
+
+	border: 2px solid #ffffff;
+	border-color: white;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: 0.3s ease;  /* Transition pour l'effet de hover */
+
+	flex-grow: 1; /* Fait en sorte que les boutons prennent toute la largeur disponible de manière égale */
+    margin: 0 5px;  /* Espace entre les boutons */
+	gap: 5px;
+}
+
+.SettingsSetting_BloodButton:hover {
+	background-color: #ff0000;
+    transform: scale(1.1); /* Agrandit légèrement l'élément */
+}
+
+
+
+
 
 
 
@@ -321,12 +621,258 @@ html, body {
 	left: 10px; /* et la je met a 10 px de la ou je veux que ce soit*/
 	
 }
-
-
 .friendButton:hover {
     background-color: #3d3d3d; /*change la couleur de fond quand on clique */
     transform: scale(1.05); /* Agrandit légèrement l'élément */
 }
+
+.userButtonBox {
+    display: flex;
+    justify-content: space-between;  /* Aligne les boutons avec un espace égal entre eux */
+    align-items: center;            /* Centre verticalement les boutons */
+    width: 100%;                    /* Assure que la boîte occupe toute la largeur du parent */
+}
+
+/*friend BUTTON SETUP*/
+.addFriendButton
+{
+	display: flex;  /* Active Flexbox */
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement (optionnel) */
+
+	background-color: #191919; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #ffffff; /* Définit une couleur de title en noir (optionnel) */	
+
+	font-size: 1.2em; /* 1.2 fois la taille de la police de l'élément parent */
+	border-radius: 10px;
+	width: 100%;
+	height: 40%;
+	padding: 0;
+
+	line-height: auto;
+
+	border: 2px solid #ffffff;
+	border-color: white;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: 0.3s ease;  /* Transition pour l'effet de hover */
+
+	flex-grow: 1; /* Fait en sorte que les boutons prennent toute la largeur disponible de manière égale */
+    margin: 0 5px;  /* Espace entre les boutons */
+}
+
+
+.addFriendButton:hover {
+    transform: scale(1.1); /* Agrandit légèrement l'élément */
+}
+
+/*Block BUTTON SETUP*/
+.blockButton
+{
+	display: flex;  /* Active Flexbox */
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement (optionnel) */
+
+	background-color: #191919; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #ffffff; /* Définit une couleur de title en noir (optionnel) */	
+
+	font-size: 1.2em; /* 1.2 fois la taille de la police de l'élément parent */
+	border-radius: 10px;
+	width: 100%;
+	height: 40%;
+	padding: 0;
+
+	line-height: auto;
+
+	border: 2px solid #ffffff;
+	border-color: white;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: 0.3s ease;  /* Transition pour l'effet de hover */
+
+	flex-grow: 1; /* Fait en sorte que les boutons prennent toute la largeur disponible de manière égale */
+    margin: 0 5px;  /* Espace entre les boutons */
+}
+
+
+.blockButton:hover {
+    background-color: #b30000; /*change la couleur de fond quand on clique */
+    transform: scale(1.1); /* Agrandit légèrement l'élément */
+}
+
+/*friend BUTTON SETUP*/
+.sendGameButton {
+    background-color: #191919; /* Fond sombre */
+    font-family: 'Poiret One', serif; /* Police du texte */
+    color: #ffffff; /* Couleur du texte */
+    font-weight: bold;
+    font-size: 1.2em; /* Taille de la police */
+    border-radius: 30px; /* Bordure arrondie */
+    border: 2px solid #ffffff; /* Bordure blanche */
+    transition: 0.3s ease; /* Transition de survol */
+
+    width: 100%; /* Ou une largeur spécifique si tu préfères */
+	height: 10%;
+	
+    margin: 10px auto; /* Ajoute un espace en haut et centre le bouton */
+}
+
+
+.sendGameButton:hover {
+	color: #191919; /* Définit une couleur de title en noir (optionnel) */	
+	background-color: #ffffff; /*permet d'enlever le fond blanc moche*/
+    transform: scale(1.05); /* Agrandit légèrement l'élément */
+}
+/*Block BUTTON SETUP*/
+.unblockButton
+{
+	display: flex;  /* Active Flexbox */
+	flex-direction: column;
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement (optionnel) */
+
+	background-color: #191919; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #ffffff; /* Définit une couleur de title en noir (optionnel) */	
+
+	font-size: 1.2em; /* 1.2 fois la taille de la police de l'élément parent */
+	border-radius: 10px;
+	width: 100%;
+	height: 40%;
+	padding: 0;
+
+	line-height: auto;
+
+	border: 2px solid #ffffff;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: 0.3s ease;  /* Transition pour l'effet de hover */
+
+	flex-grow: 1; /* Fait en sorte que les boutons prennent toute la largeur disponible de manière égale */
+    margin: 0 5px;  /* Espace entre les boutons */
+}
+
+
+.unblockButton:hover {
+	font-weight: bold;
+    background-color: #008000; /*change la couleur de fond quand on clique */
+    transform: scale(1.1); /* Agrandit légèrement l'élément */
+}
+
+
+/* CHAT BEAUTIFUL DESIGNNNNN*/
+.chat_zone {
+	display: flex;
+	flex-direction: column;
+	height: 50vh;
+	border: 2px solid #000000;
+}
+
+.chat {
+	scrollbar-width: thin;
+    scrollbar-color: #f5f5dc transparent; /* Blanc cassé (#f5f5dc) et fond transparent */
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+	border-radius: 5px;
+	max-height: 80%;
+	overflow-y: auto;
+	gap: 5px;
+}
+
+.chat::-webkit-scrollbar {
+    width: 8px; /* Largeur de la scrollbar */
+    border-radius: 10px; /* Arrondi général */
+    border: 1px solid #000; /* Bordure noire autour de la scrollbar */
+    background: transparent; /* Fond invisible */
+}
+.chat::-webkit-scrollbar-track {
+    background: transparent; /* Fond de la piste invisible */
+    border-radius: 10px; /* Arrondi de la piste */
+}
+.chat::-webkit-scrollbar-thumb {
+    background: #f5f5dc; /* Blanc cassé */
+    border: 1px solid #000000; /* Bordure noire */
+    border-radius: 10px; /* Bords arrondis */
+}
+.chat::-webkit-scrollbar-thumb:hover {
+    background: #e0e0c0; /* Couleur légèrement plus foncée au survol */
+}
+
+
+.received-message {
+    word-wrap: break-word; /* Force la coupure des mots trop longs */
+    overflow-wrap: break-word; /* Assure la compatibilité avec tous les navigateurs */
+    white-space: normal; /* Permet le retour à la ligne */
+
+	border-radius: 5px 20px 20px 5px;
+	padding: 2% 10%;
+
+	font-family: 'Poiret One', serif; /* Police du texte */
+	font-weight: bold;
+
+	display: inline-block; /* Permet de réduire la taille à celle du texte */
+	max-width: 80%; /* Limite la taille des messages pour ne pas dépasser toute la largeur */
+
+	background-color: #191919;
+	color: #f7f7f7;;
+	align-self: flex-start;
+}
+
+.sent-message {
+    word-wrap: break-word; /* Force la coupure des mots trop longs */
+    overflow-wrap: break-word; /* Assure la compatibilité avec tous les navigateurs */
+    white-space: normal; /* Permet le retour à la ligne */
+
+	border-radius: 20px 5px 5px 20px;
+
+	padding: 2% 10%;
+
+	font-family: 'Poiret One', serif; /* Police du texte */
+	font-weight: bold;
+
+	display: inline-block; /* Permet de réduire la taille à celle du texte */
+	max-width: 80%; /* Limite la taille des messages pour ne pas dépasser toute la largeur */
+
+	background-color: #f7f7f7;
+	color: #191919;
+	align-self: flex-end;
+}
+
+
+/* Style de la barre de recherche */
+#sendMessageBar {
+	margin-top: 5px;
+	margin-right: 10px;
+	align-self: flex-end;
+    width: 40%;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-family: 'Poiret One', serif;
+    color: #f7f7f7; /* Texte blanc */
+    background-color: #191919; /* Fond noir */
+    border: 1px solid #444; /* Bordure légèrement plus claire que le fond */
+	border-radius: 20px 5px 5px 20px;
+    outline: none; /* Supprime la bordure par défaut lors du focus */
+    transition: 0.3s ease; /* Transition douce pour le focus */
+}
+
+/* Style au focus (quand la barre est sélectionnée) */
+#sendMessageBar:focus {
+	border-radius: 20px;
+    width: 60%;
+    border-color: #f7f7f7; /* Bordure blanche pour mettre en évidence */
+}
+
+/* Placeholder (texte d'exemple) */
+#sendMessageBar::placeholder {
+    color: #888; /* Placeholder gris pour contraster avec le fond noir */
+    opacity: 1; /* Assure que le placeholder est bien visible */
+}
+
 /*END OF friends BUTTON SETUP*/
 
 
@@ -356,17 +902,44 @@ html, body {
 }
 /*END OF settings BUTTON SETUP*/
 
+/*LOGOUT-BUTTON*/
+#logoutButton
+{
+	font-family: 'Poiret One', serif;
+    position: absolute;
+    bottom: 30px;
+    right: 10px;
+	font-size: 20px;
 
+	color: #f7f7f7;  /* Set your desired color */
+    text-decoration: none; /* Remove underline */
+
+	display: flex;
+    align-items: center; /* Aligne verticalement */
+    gap: 5px; /* Espacement entre le texte et l'icône */
+	transition: transform 0.5s ease-in-out, border-bottom 0.5s ease-in-out;
+}
+
+#lougoutButton:hover {
+	transform: scale(1.1);
+	border-bottom: #f7f7f7;
+
+}
+/*------------*/
 
 
 /*---------------------------------------- ELEMENT SECONDAIRE DE MAIN PAGE---------------------------*/
-.mainTitle
-{
-	font-family: 'Poiret One', serif;/*defini la police du texte*/
-	color: #f7f7f7; /* Définit une couleur de title en blanc casse (optionnel) */
-
+.mainTitle {
+    font-family: 'Poiret One', serif; /* Define font */
+    color: #f7f7f7; /* Light white */
+    font-weight: bold;
+    letter-spacing: 5px;
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.2);
+    font-size: 200%; /* Use font-size instead of 'size' (which is invalid) */
+    transition: text-shadow 1.5s ease-in-out;
+    cursor: default;
+	gap: 0;
 }
-
 
 /*play BUTTON SETUP*/
 .playButton
@@ -374,19 +947,40 @@ html, body {
 	background-color: transparent; /*permet d'enlever le fond blanc moche*/
 	font-family: 'Poiret One', serif;/*defini la police du texte*/
 	color: #000000; /* Définit une couleur de title en noir (optionnel) */
-	border: none; /*enleve l'effet de bordure moche de base en html*/
-    border-radius: 5px; /* ajoute un effet pour smooth les bords*/
-
-	
+    border-radius: 50px; /* ajoute un effet pour smooth les bords*/
+	border: solid 3px #f7f7f7;
+    width: 80px; /* Use viewport width for responsiveness */
 
 	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
-    transition: transform 0.3s ease, color 0.3s ease;  /* Transition pour l'effet de hover */
+    transition: background-color 0.3s ease;  /* Transition pour l'effet de hover */
+	transition: width 0.3s ease;
 }
 
 .playButton:hover {
+	width: 240px;
     background-color: #3d3d3d; /*change la couleur de fond quand on clique */
-    transform: scale(1.05); /* Agrandit légèrement l'élément */
 }
+
+.simple-button {
+	background-color: transparent; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #f7f7f7; /* Définit une couleur de title en noir (optionnel) */
+    border-radius: 5px; /* ajoute un effet pour smooth les bords*/
+	border: solid 2px #f7f7f7;
+	width: auto;
+	height: auto;
+	padding: 3px;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: background-color 0.3s ease;  /* Transition pour l'effet de hover */
+	transition: transform 0.3s ease;
+}
+
+.simple-button:hover {
+	transform: scale(1.1);
+    background-color: #3d3d3d; /*change la couleur de fond quand on clique */
+}
+
 /*END OF play BUTTON SETUP*/
 
 
@@ -398,19 +992,9 @@ html, body {
 
 /*---------------------------------------- ELEMENT SECONDAIRE DE GAME PAGE---------------------------*/
 
-<<<<<<< Updated upstream
-=======
 /*game css SETUP*/
 
 /*MENU*/
-#test
-{
-	overflow-y: auto;
-	top:50%;
-	height: 10px;
-	position: absolute;
-}
-
 .GameOption:hover
 {
 	background-color: rgba(255, 255, 255, 0.265);
@@ -420,40 +1004,87 @@ html, body {
 .GameOption
 {
 	display:flex;
-	border: none;
+	align-content: center;
+	justify-content: center;
+	border: solid 3px #f7f7f7;
 	cursor: pointer;
 	transition: transform 0.5s ease, opacity 0.5s ease;
 	background-color: transparent;
 	padding:10px;
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #f7f7f7; /* Définit une couleur de title en noir (optionnel) */
+	font-size: 54px;
+	font-weight: bold;
+}
+
+#friendList
+{
+	border-radius: 5px;
+	border-color: white;
+	height: 60vw;
+	max-height: 213px;
+	display: flex;
+    flex-direction: column;
+	overflow-y: scroll;
+  	width: inherit;
+	margin: 0;
+	padding: 0;
+}
+
+#friendList button
+{
+	border: none;
 }
 
 .friendList
 {
+	width: 60vw;
+	max-width: 300px;
 	opacity: 0;
     visibility: hidden;
-	border-radius: 5px;
-	border-color: white;
-	max-height: 300px;;
-	height :60vw;
-	gap: 10px;
 	display: flex;
-    align-items: center;
-    flex-direction: column;
+	align-items: center;
+ 	border-radius: 5px;
+ 	border: outset white;
 }
 
-#local, #online, #FriendTitle
+#local, #online, #joinMenu,#createMenu, #joinPage, #createPage, #FriendTitle
 {
 	opacity: 0;
     visibility: hidden;
 	display: none;
 }
 
-#local.active,#online.active, .friendList.active, #FriendTitle.active
+#local.active,#online.active, .friendList.active, #FriendTitle.active,#joinMenu.active, #createMenu.active, #joinPage.active, #createPage.active
 {
 	display: flex;
 	opacity: 100;
     visibility:visible;
 }
+
+
+.waitingPage
+{
+	display: none;
+	visibility: hidden;   /* Masquer par défaut */
+    opacity: 0;
+}
+
+.waitingPage.active {
+	visibility: visible;   /* Rendre visible quand "active" */
+    opacity: 1;
+    display: flex;
+    position: fixed;  /* Prendre tout l'écran */
+    top: 0;
+    left: 0;
+    width: 100vw;   /* Largeur de l'écran */
+    height: 100vh;  /* Hauteur de l'écran */
+    background-color: rgba(0, 0, 0, 0.8); /* Fond gris foncé avec opacité */
+    z-index: 9999;  /* Assure que l'élément est devant tout */
+    align-items: center;  /* Centrer le contenu si nécessaire */
+    justify-content: center;  /* Centrer le contenu si nécessaire */
+}
+
 
 #GameMenu
 {
@@ -462,6 +1093,7 @@ html, body {
     opacity: 1;
     visibility: visible;
 	justify-content: center;
+	flex-direction: column;
 	flex-wrap: wrap;
 	position: absolute;
     bottom: 50%; /* Moves the menu to the middle of the bottomPage */
@@ -471,18 +1103,11 @@ html, body {
 	gap: 40px;
 }
 
-#GameMenu.inactive, #VsAi.inactive,#VsFriend.inactive
+#GameMenu.inactive, #VsAi.inactive,#VsFriend.inactive, #Tournament.inactive
 {
 	display: none;
 	opacity: 0;
     visibility: hidden;
-}
-
-#friendList
-{
-	left:30%;
-	width:300px;
-	position: relative;
 }
 
 /*GAME*/
@@ -521,7 +1146,7 @@ html, body {
 
 }
 
-#TheGame.active, #scoreboard.active, #ReturnButton.active, #winner.active
+#TheGame.active, #scoreboard.active, #ReturnButton.active, #winner.active, #Tournament.active
 {
 	display:flex;
 	opacity: 1;
@@ -554,6 +1179,7 @@ html, body {
 	flex-wrap: wrap;
 	border: none;
 	border-radius: 5px;
+	
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
 }
 
@@ -571,8 +1197,8 @@ html, body {
 	border-radius: 5px;
     transition: transform 0.5s ease, opacity 0.5s ease; /* Animation fluide */
 	background-color: transparent;
-	left: 10%;
 	bottom:10%;
+	position: absolute;
 }
 
 
@@ -586,7 +1212,7 @@ html, body {
 	gap: 20px;
 }
 
-#GameInvite.active, #loading.active
+#GameInvite.active, #loading.active, #cant_play.active, #loading.active
 {
 	display: inline-flex;
 }
@@ -612,23 +1238,49 @@ html, body {
 	transform: scale(1.05);
 }
 
-#loading
+#loading, #cant_play
 {
 	display:none;
 	position: absolute;
 	top:50%;
-	
+	flex-wrap: wrap;
+	text-size-adjust:inherit ;
 }
 /*end of game css SETUP*/
 
->>>>>>> Stashed changes
 
-.gameTitle
+.gameTitle, #cant_play
 {
 	font-family: 'Poiret One', serif;/*defini la police du texte*/
 	color: #f7f7f7; /* Définit une couleur de title en blanc casse (optionnel) */
 
 }
+
+
+#createPage {
+	
+	width: 100%; /* Ajuste selon la taille souhaitée */
+	height: 100%;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#joinPage {
+
+	width: 100%; /* Ajuste selon la taille souhaitée */
+	height: 100%;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+
+
+
+
+
+
 
 
 /*TOMAINPAGE BUTTON SETUP*/
@@ -655,26 +1307,28 @@ html, body {
 
 
 
-/*game css SETUP*/
-#scoreboard {
-    display: flex;
-    justify-content: space-between;
-    width: 500px; /* Width of the canvas to align points */
+.user-info {
+	font-family: 'Poiret One', serif;
+	font-weight: 100;
+	font-size: 22px;
+	white-space: nowrap;
+	/*overflow: hidden;
+	//text-overflow: ellipsis;*/
+	margin: 3px;
 }
-
-#p1-points, #p2-points {
-    color: white;
-    margin: 0; /* Remove unwanted margins */
-}
-/*end of game css SETUP*/
-
-
 
 /*---------------------------------------- GOOGLE FONT UTILS---------------------------*/
 .material-symbols-outlined {
+	padding: 1px;
 
     font-size: 54px;   /* Taille de l'icône */
     color: #f0f0f0;        /* Couleur de l'icône */
 }
 
+.icon-smaller{
+	padding: 1px;
+
+    font-size: 27px;         /* Taille de l'icône */
+    color: #f0f0f0;        /* Couleur de l'icône */
+}
 /*---------------------------------------- JAVASCRIPT UTILS---------------------------*/
