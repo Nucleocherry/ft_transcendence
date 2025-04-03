@@ -18,6 +18,11 @@ let refresh_rate = 10
 let blood_mode = 0;
 let color = "black"
 let skin = "black"
+
+let in_tournament = 0;
+let tournamentRound = 0;
+
+
 /*------------CLIENT-PLAYER-MOVEMENT----------------------------------------*/
 function move_remote_ball(data)
 {
@@ -27,7 +32,6 @@ function move_remote_ball(data)
 	ball.x = (data.width / 2 )+ ((data.width / 2 )- data.ball.x) ;
 	ball.y = data.ball.y;
 	clienttrigger = 0;
-	console.log("p2_username : ", p2_username, " hostname ", hostname, "trigger: ", trigger, "clienttrigger: ", clienttrigger, "friendtrigger: ", friendtrigger);
 	if (p2.points != data.points.p1)// les cotés sont inversés car de son point de vue le user est tjrs le p1
 		p2.points = data.points.p1;
 	if (p1.points != data.points.p2)// les cotés sont inversés car de son point de vue le user est tjrs le p1
@@ -184,7 +188,13 @@ document.addEventListener('DOMContentLoaded', () => {
 			p2.movePlayer(speed);
 		if (keys["ArrowUp"] && localtrigger === 1)
 			p2.movePlayer(-(speed));
-		if (keys[" "] && (aitrigger === 1 || (friendtrigger === 1 && p2_username != hostname) || localtrigger === 1) && trigger === 0)
+		if (keys[" "])
+		{
+			console.log("friendtrigger: ", friendtrigger);
+			console.log("hostname: ", hostname);
+			console.log("p2_username: ", p2_username);
+		}
+			if (keys[" "] && (aitrigger === 1 || (friendtrigger === 1 && p2_username != hostname) || localtrigger === 1) && trigger === 0)
 		{
 			trigger = 1;
 			if (friendtrigger === 1 && p2_username != hostname)
@@ -243,9 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
 			movement();
 		if (trigger === 1 && (aitrigger === 1 || (friendtrigger === 1 && hostname != p2_username) || localtrigger === 1))// to change on setup
 				ball.moveBall(p1, p2);
+	
 		if (p1.points === 5 || p2.points == 5)
 		{
 			let result;
+	
 			if (p1.points === 5 && friendtrigger === 1)
 			{
 				result = "win";
@@ -269,28 +281,63 @@ document.addEventListener('DOMContentLoaded', () => {
 				})
 			}
 			if (friendtrigger === 1)
-			{
-				fetch('/add_match_history/', {
-					method: "POST",
-					headers: {
-						"X-CSRFToken": getCSRFToken(),
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify({
-						opponent_username: p2_username,
-						result: result,
-						score_player: p1.points,
-						score_opponent: p2.points,
+				{
+					fetch('/add_match_history/', {
+						method: "POST",
+						headers: {
+							"X-CSRFToken": getCSRFToken(),
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({
+							opponent_username: p2_username,
+							result: result,
+							score_player: p1.points,
+							score_opponent: p2.points,
+						})
 					})
-				})
-				.then(reponse => reponse.json())
-				.then(data => {
-					if (data.success) {
-						showMatchHistory(); // Now correctly waits for the fetch response before updating the UI
+					.then(reponse => reponse.json())
+					.then(data => {
+						if (data.success) {
+							showMatchHistory(); // Now correctly waits for the fetch response before updating the UI
+						}
+					})
+					.catch(error => console.error("Error updating match history:", error));
+				}
+				if (in_tournament === 1)
+				{
+					if (tournamentRound === 0)
+					{
+						alert("deuxieme manche mache wola");
+						if (p1.points === 5 && friendtrigger === 1)
+						{
+							secondRound(1);	
+							tournamentRound++;
+						}
+						else
+						{
+							secondRound(0)
+							tournamentRound++; //faudra faire que ca se mette a zero si on a perdu avec la 
+							// in_tournament = 0; tournamentRound = 0;
+						}
+						
 					}
-				})
-				.catch(error => console.error("Error updating match history:", error));
-			}
+					else if (tournamentRound === 1)
+					{
+						alert("vive le caca rtoisieme manche");
+						if (p1.points === 5 && friendtrigger === 1)
+						{
+							lastRound(1);	
+							tournamentRound++;
+						}
+						else
+						{
+							lastRound(0)
+							tournamentRound++; //faudra faire que ca se mette a zero si on a perdu avec la 
+							// in_tournament = 0; tournamentRound = 0;
+						}
+					}
+
+				}
 
 			reInitialize();
 		}

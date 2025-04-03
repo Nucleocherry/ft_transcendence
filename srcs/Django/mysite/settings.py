@@ -164,4 +164,4 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 
-CSRF_TRUSTED_ORIGINS = ["https://localhost"]
+CSRF_TRUSTED_ORIGINS = ["https://10.18.148.132", "https://localhost", "https://192.168.1.42"]

@@ -24,7 +24,7 @@
 
 <body data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}">
     <input type="hidden" id="csrfToken" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-	<div class="login-container" id="login" style="display: flex;">
+	<div class="login-container" id="login" style="display: none;">
 		<div class="mainLoginPage">
 			<button class="ApiLoginButton" onclick="connectWithApi()">
 				<img src="{% static 'web/images/42.svg' %}" alt="My Image">
@@ -137,56 +137,39 @@
 				<span> ONLINE</span>
 			</span>
 
-
-
-			
-
-			<span id="tournament4"  onclick="activateTournament4()" class="GameOption">
-				<span class="material-symbols-outlined">looks_4</span>
-				<span class="material-symbols-outlined">Volunteers</span>
+			<span id="createMenu"  onclick="createTournamentMenu()" class="GameOption">
+				<span class="material-symbols-outlined">lan</span>
+				<span>CREATE</span>
 			</span>
 
-			<span id="tournament8" onclick="activateTournament8()" class="GameOption">
-				<span class="material-symbols-outlined">looks_8</span>
-				<span class="material-symbols-outlined">Volunteers</span>
+			<span id="joinMenu" onclick="joinTournamentMenu()" class="GameOption">
+				<span class="material-symbols-outlined">arrow_right_alt</span>
+				<span>JOIN</span>
 			</span>
 
 			<!-- Zone du tournoi -->
-		<div id="theTournament4" class="theTournament4">
-
-
-				<input type="text" id="p1_name" placeholder="Joueur 1">
-				<input type="text" id="p2_name" placeholder="Joueur 2">
-				<input type="text" id="p3_name" placeholder="Joueur 3">
-				<input type="text" id="p4_name" placeholder="Joueur 4">
-
-				<button class="tournament_button" onclick="registerPlayerTournament()">Prêt</button>
+			<div id="createPage" class="createPage">
+				<div style="height: 250px; width: 500px; background-color: grey; overflow-y: auto;">
+					<ul id="tournamentPlayersList">
+					</ul>
+				</div>
+				<button onclick="launchTournament()">lancer</button>
+				<button onclick="deleteTournament()">delete</button>
 			</div>
 
-			<!-- Zone du tournoi -->
-		<div id="theTournament8" class="theTournament8">
 
-
-
-
-					<input type="text" id="p1_Name" placeholder="Joueur 1">
-					<input type="text" id="p2_Name" placeholder="Joueur 2">
-					<input type="text" id="p3_Name" placeholder="Joueur 3">
-					<input type="text" id="p4_Name" placeholder="Joueur 4">
-
-
-					
-					<img src="{% static 'web/images/tournament_tree8.png' %}" alt="Tournament tree">
-
-					<input type="text" id="p5_Name" placeholder="Joueur 5">
-					<input type="text" id="p6_Name" placeholder="Joueur 6">
-					<input type="text" id="p7_Name" placeholder="Joueur 7">
-					<input type="text" id="p8_Name" placeholder="Joueur 8">
-			
-			
-					<button class="tournament_button" onclick="registerPlayerTournament()">Prêt</button>
-
+			<div id="joinPage" class="joinPage">
+				<div style="height: 250px; width: 500px; background-color: grey; overflow-y: auto;">
+					<ul id="tournamentListJoin">
+					</ul>
+				</div>
+				<button onclick="quitTournament()">quitter</button>
 			</div>
+
+			<div id="waitingPage" class="waitingPage">
+				<h1>Veuillez attendre les autres joueurs</h1>
+			</div>
+
 
 		</div></center>
 

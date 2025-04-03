@@ -75,3 +75,32 @@ class WebConsumer(AsyncWebsocketConsumer):
             await sync_to_async(user.save)()  # Save the status asynchronously
         except Utilisateur.DoesNotExist:
             print(f"⚠️ Utilisateur with ID {self.user_id} not found.")
+
+
+    async def match_tournament(self, event):
+        """Envoie les informations du match aux joueurs."""
+        await self.send(text_data=json.dumps({
+            "type": "match_tournament",
+            "tournament_id": event.get("tournament_id"),
+            "is_hosting": event.get("is_hosting"),
+            "user": event.get("user"),
+            "opponent": event.get("opponent"),  # Envoie les infos de l'adversaire
+            "round": event.get("round"),
+        }))
+
+
+
+    async def notify_join_tournament(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "notify_join_tournament",
+            "tournament_id" : event.get("tournament_id"),
+            "is_hosting" : event.get("is_hosting"),
+            "message": event.get("message"),
+        }))
+        
+    async def new_tournament(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "new_tournament",
+            "tournament_id" : event.get("tournament_id"),
+            "message": event.get("message"),
+        }))

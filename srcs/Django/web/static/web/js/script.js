@@ -106,6 +106,54 @@ document.addEventListener("DOMContentLoaded", () => {
 			MenuTrigger = 3;
 
 		}
+
+		else if (data.type === "match_tournament")
+			{
+
+				let waitingPage =  document.getElementById("waitingPage");
+				waitingPage.classList.remove('active');
+				
+				if (data.is_hosting == "true")
+				{
+					user_id = data.opponent.id;
+					p2_username = data.opponent.username
+					friendtrigger = 1;	
+					in_tournament = 1
+					alert("Le match contre : ", p2_username, "Va commencer !");
+					activateFriendGame();
+				}
+				else
+				{
+					hostname = data.opponent.username;
+					user_id = data.opponent.id;
+					p2_username = data.opponent.username
+					friendtrigger = 1;
+					in_tournament = 1
+					alert("Le match contre : ", p2_username, "Va commencer !");
+					activateFriendGame();
+
+				}		
+			}
+		else if (data.type ==="notify_join_tournament")
+		{
+			if (data.is_hosting)
+			{
+				getTournamentPlayers_Create(data.tournament_id);
+			}
+			else
+			{
+				getTournamentPlayers_Join(data.tournament_id);
+			}
+
+			if (data.message === "is_destroyed")
+			{
+				returnToPreviousMenu();
+			}		
+		}
+		else if (data.type ==="new_tournament")
+		{
+			getAllTournaments()
+		}
 	};
 	showMatchHistory();
 	showFriendList();
@@ -176,10 +224,11 @@ function returnToPreviousMenu()
 	let cant_play = document.getElementById('cant_play');
 
 	let tournamentButton = document.getElementById('Tournament');
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
-	let tournamentForm4 = document.getElementById('theTournament4');
-	let tournamentForm8 = document.getElementById('theTournament8');
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
+
+	let joinPage = document.getElementById('joinPage');
+	let createPage = document.getElementById('createPage');
 
 	if (MenuTrigger === 1)
 	{
@@ -191,9 +240,11 @@ function returnToPreviousMenu()
 		online.classList.remove('active');
 		tournamentButton.classList.remove('inactive');
 
-		tournament4.classList.remove('active');
-		tournament8.classList.remove('active');
+		createMenu.classList.remove('active');
+		joinMenu.classList.remove('active');
 
+		createPage.classList.remove('active');
+		joinPage.classList.remove('active');
 	}
 	else if (MenuTrigger === 2)
 	{
@@ -202,8 +253,11 @@ function returnToPreviousMenu()
 		online.classList.add('active');
 		friendTitle.classList.remove('active');
 		friendMenu[0].classList.remove('active');
-		tournament4.classList.remove('active');
-		tournament8.classList.remove('active');
+
+		createMenu.classList.remove('active');
+		joinMenu.classList.remove('active');
+		createPage.classList.remove('active');
+		joinPage.classList.remove('active');
 	}
 	else if (MenuTrigger === 3)
 	{
@@ -218,21 +272,32 @@ function returnToPreviousMenu()
 
 		online.classList.remove('active');
 		local.classList.remove('active');
-
-		tournamentForm4.classList.remove('active');
-		tournamentForm8.classList.remove('active');
-		
 	
 		returnButton.classList.add('active');
 	}
 	else if (MenuTrigger === 4)
 	{
-		MenuTrigger = 2;
+		MenuTrigger = 1;
 
-		tournamentForm4.classList.remove('active');
-		tournamentForm8.classList.remove('active');
-		tournament4.classList.add('active');
-		tournament8.classList.add('active');
+
+		createMenu.classList.add('active');
+		joinMenu.classList.add('active');
+		createPage.classList.remove('active');
+		joinPage.classList.remove('active');
+
+
+	}
+	else if (MenuTrigger === 5)
+	{
+		MenuTrigger = 4;
+
+
+		createPage.classList.add('active');
+		joinPage.classList.add('active');
+		createMenu.classList.remove('active');
+		joinMenu.classList.remove('active');
+
+
 	}
 }
 
@@ -243,9 +308,8 @@ function activateAiGame()
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
 	let returnButton = document.getElementById('ReturnButton');
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
-
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
 	returnButton.classList.remove('active');
 	GameMenu.classList.add('inactive');
 	TheGame.classList.add('active');
@@ -253,8 +317,8 @@ function activateAiGame()
 	winner.classList.remove('active');
 	aitrigger = 1;
 	trigger = 0;
-	tournament4.classList.add('inactive');
-	tournament8.classList.add('inactive');
+	createMenu.classList.add('inactive');
+	joinMenu.classList.add('inactive');
 }
 
 function activateLocalGame()
@@ -264,8 +328,8 @@ function activateLocalGame()
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
 	let returnButton = document.getElementById('ReturnButton');
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
 
 	returnButton.classList.remove('active');
 	GameMenu.classList.add('inactive');
@@ -274,8 +338,8 @@ function activateLocalGame()
 	winner.classList.remove('active');
 	localtrigger = 1;
 	trigger = 0;
-	tournament4.classList.add('inactive');
-	tournament8.classList.add('inactive');;
+	createMenu.classList.add('inactive');
+	joinMenu.classList.add('inactive');
 }
 
 function activateFriendMenu()
@@ -287,8 +351,8 @@ function activateFriendMenu()
 	let returnButton = document.getElementById('ReturnButton');
 	let tournamentButton = document.getElementById('Tournament');
 
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
 
 	MenuTrigger = 1;
 	returnButton.classList.add('active');
@@ -297,8 +361,8 @@ function activateFriendMenu()
 	tournamentButton.classList.add('inactive');
 	local.classList.add('active');
 	online.classList.add('active');
-	tournament4.classList.add('inactive');
-	tournament8.classList.add('inactive');
+	createMenu.classList.add('inactive');
+	joinMenu.classList.add('inactive');
 }
 
 
@@ -312,10 +376,8 @@ function activateTournament()
 
 	let tournamentButton = document.getElementById('Tournament');
 
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
-	let tournamentForm4 = document.getElementById('theTournament4');
-	let tournamentForm8 = document.getElementById('theTournament8');
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
 
 	MenuTrigger = 1;
 
@@ -325,8 +387,8 @@ function activateTournament()
 	online.classList.remove('active');
 	local.classList.remove('active');
 
-	tournament4.classList.add('active');
-	tournament8.classList.add('active');
+	createMenu.classList.add('active');
+	joinMenu.classList.add('active');
 
 	
 	tournamentButton.classList.add('inactive');
@@ -337,7 +399,7 @@ function activateTournament()
 
 }
 
-function activateTournament8()
+function joinTournamentMenu()
 {
 	let VsAi = document.getElementById('VsAi');
 	let VsFriend = document.getElementById('VsFriend');
@@ -347,10 +409,12 @@ function activateTournament8()
 
 	let tournamentButton = document.getElementById('Tournament');
 
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
-	let tournamentForm4 = document.getElementById('theTournament4');
-	let tournamentForm8 = document.getElementById('theTournament8');
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
+
+	let joinPage = document.getElementById('joinPage');
+	let createPage = document.getElementById('createPage');
+
 
 	MenuTrigger = 4;
 
@@ -360,51 +424,56 @@ function activateTournament8()
 	online.classList.remove('active');
 	local.classList.remove('active');
 
-	tournament4.classList.remove('active');
-	tournament8.classList.remove('active');
+	createMenu.classList.remove('active');
+	joinMenu.classList.remove('active');
+
+	createPage.classList.remove('active');
+	joinPage.classList.add('active');
 	tournamentButton.classList.add('inactive');
 
-	tournamentForm4.classList.remove('active');
-	tournamentForm8.classList.add('active');
+
+	returnButton.classList.add('active');
+	joinTournamentFunction();
+
+}
+function createTournamentMenu()
+{
+	let VsAi = document.getElementById('VsAi');
+	let VsFriend = document.getElementById('VsFriend');
+	let online = document.getElementById('online');
+	let local = document.getElementById('local');
+	let returnButton = document.getElementById('ReturnButton');
+
+	let tournamentButton = document.getElementById('Tournament');
+
+	let joinMenu = document.getElementById('joinMenu');
+	let createMenu = document.getElementById('createMenu');
+
+
+	MenuTrigger = 4;
+
+
+	VsAi.classList.add('inactive');
+	VsFriend.classList.add('inactive');
+	online.classList.remove('active');
+	local.classList.remove('active');
+
+	createMenu.classList.remove('active');
+	joinMenu.classList.remove('active');
+
+	createPage.classList.add('active');
+	joinPage.classList.remove('active');
+
+	tournamentButton.classList.add('inactive');
+
 
 
 	returnButton.classList.add('active');
 	
-
-}
-function activateTournament4()
-{
-	let VsAi = document.getElementById('VsAi');
-	let VsFriend = document.getElementById('VsFriend');
-	let online = document.getElementById('online');
-	let local = document.getElementById('local');
-	let returnButton = document.getElementById('ReturnButton');
-
-	let tournamentButton = document.getElementById('Tournament');
-
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
-	let tournamentForm4 = document.getElementById('theTournament4');
-	let tournamentForm8 = document.getElementById('theTournament8');
-
-	MenuTrigger = 4;
-
-
-	VsAi.classList.add('inactive');
-	VsFriend.classList.add('inactive');
-	online.classList.remove('active');
-	local.classList.remove('active');
-
-	tournament4.classList.remove('active');
-	tournament8.classList.remove('active');
-	tournamentButton.classList.add('inactive');
-
-	tournamentForm4.classList.add('active');
-	tournamentForm8.classList.remove('active');
+	createTournamentFunction();
 
 
 
-	returnButton.classList.add('active');
 	
 }
 
@@ -422,6 +491,7 @@ function activateFriendGame()
 	TheGame.classList.add('active');
 	Scoreboard.classList.add('active');
 	winner.classList.remove('active');
+					console.log("friendtrigger2: ", friendtrigger);
 }
 
 function handleGameInvite(_data)
@@ -1653,103 +1723,321 @@ function updatePicture(pictureName) {
     .catch(error => console.error("Erreur:", error));
 }
 
-function checkUsernames(usernames, callback) {
-    fetch('/check_usernames_tournament/', {
-        method: "POST",
+
+
+
+
+
+
+
+
+// TOURNOIS ---------------------------------------------
+
+
+
+
+function joinTournamentFunction()
+{
+	getAllTournaments()
+}
+
+function joinTournament(tournament)
+{
+
+
+	alert("tournament name : " + tournament.name + " id: " + tournament.tournament_id);
+	fetch('/join_tournament/', {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": getCSRFToken()  // Ajout du token CSRF
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Nécessaire pour Django
         },
-        body: new URLSearchParams({ usernames: usernames.join(",") })  // Envoi sous forme de string
+        body: JSON.stringify({
+            tournament_id: tournament.tournament_id,
+        })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.status === "success") {
-            callback(data.all_exist ? 0 : data.missing);
+        if (data.success)
+		{
+            alert("Tournoi rejoins !");
+
+
+			//ajouter la nouvelle page avec tout les joueur 
+            // D'autres actions que tu veux faire après la création
+			getTournamentPlayers_Join(data.tournament_id);
         } else {
-            console.error("Erreur côté serveur :", data.message);
-            callback(1);
+            alert("Erreur : " + data.error);
         }
     })
-    .catch(error => {
-        console.error("Erreur lors de la vérification des utilisateurs :", error);
-        callback(1);
-    });
+    .catch(error => console.error("Erreur :", error));
+}
+
+function quitTournament()
+{
+	fetch('/quitTournament/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Nécessaire pour Django
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success)
+		{
+            alert("Tournoi quitte !");
+			returnToPreviousMenu();
+
+
+			//ajouter la nouvelle page avec tout les joueur 
+            // D'autres actions que tu veux faire après la création
+        } else {
+            alert("Erreur : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
+}
+
+function createTournamentFunction()
+{
+	fetch('/create_tournament/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Nécessaire pour Django
+        },
+        body: JSON.stringify({
+            name: "Tournoi 8 joueurs by ",  // Utilise userId dans le nom du tournoi
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Tournoi créé !");
+			getTournamentPlayers_Create(data.tournament_id);
+            // D'autres actions que tu veux faire après la création
+        } else {
+            alert("Erreur : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
 }
 
 
-function registerPlayerTournament() {
-    let players = [];
-    for (let i = 1; i <= 8; i++) {
-        let playerName = document.getElementById(`p${i}_Name`).value.trim();
-        if (playerName !== "") {
-            players.push(playerName);
-        }
-    }
 
-    if (players.length !== 8) {
-        alert("Il doit y avoir exactement 8 joueurs pour commencer le tournoi.");
+
+function deleteTournament() {
+
+    fetch(`/delete_tournament/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Nécessaire pour Django
+        }  // Envoi de l'objet JSON dans la requête
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Tournoi supprimé !");
+             // Appeler la fonction qui bascule le bouton
+        } else {
+            alert("Erreur : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
+
+    // Réinitialisation du bouton après suppression
+}
+
+
+
+function getTournamentPlayers_Create(tournamentId) {
+    fetch('/get_tournament_players/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Nécessaire pour Django
+        },
+        body: JSON.stringify({
+            tournament_id: tournamentId  // Envoi de l'ID dans le body
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+		console.log("Données reçues du serveur:", data);
+        if (data.success) {
+            let playersList = document.getElementById("tournamentPlayersList");
+            playersList.innerHTML = "";  // Vider la liste avant d'ajouter les joueurs
+            data.players.forEach(player => {
+                let li = document.createElement("li");
+                li.textContent = player;  // Ajouter le nom du joueur
+                playersList.appendChild(li);
+            });
+        } else {
+            console.error("Erreur :", data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
+}
+
+
+function getTournamentPlayers_Join(tournamentId) {
+    fetch('/get_tournament_players/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()  // Nécessaire pour Django
+        },
+        body: JSON.stringify({
+            tournament_id: tournamentId  // Envoi de l'ID dans le body
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let playersList = document.getElementById("tournamentListJoin");
+
+            playersList.innerHTML = "";  // Vider la liste avant d'ajouter les joueurs
+            data.players.forEach(player => {
+                let li = document.createElement("li");
+                li.textContent = player;  // Ajouter le nom du joueur
+                playersList.appendChild(li);
+            });
+        } else {
+            console.error("Erreur :", data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    getAllTournaments();  // Récupère et affiche les tournois
+});
+// Fonction pour récupérer tous les tournois
+function getAllTournaments() {
+    fetch('/get_all_tournaments/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // Nécessaire pour Django
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+			console.log("Tournois reçus :", data.tournaments);
+            displayTournaments(data.tournaments);  // Affiche les tournois si la requête réussie
+        } else {
+            alert("Erreur lors de la récupération des tournois : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
+}
+
+
+// Fonction pour afficher les tournois sous forme de boutons
+function displayTournaments(tournaments) {
+    const tournamentListDiv = document.getElementById("tournamentListJoin");
+    if (!tournamentListDiv) {
+        console.error("Erreur : l'élément #joinPage n'existe pas.");
         return;
     }
 
-    // Vérification des pseudos dans la base de données
-    checkUsernames(players, function(missingPlayers) {
-        if (missingPlayers !== 0 && Array.isArray(missingPlayers)) {
-            alert("Les utilisateurs suivants n'existent pas : " + missingPlayers.join(", "));
-            return;
-        } else if (missingPlayers !== 0) {
-            alert("Erreur lors de la vérification des utilisateurs.");
-            return;
-        }
+    tournamentListDiv.innerHTML = "";  // Réinitialise la liste de tournois
 
-        // Cacher les inputs et le bouton après validation
-        document.getElementById("theTournament8").style.display = "none";
-
-        // Lancer le tournoi
-        launchTournament(players);
+    tournaments.forEach(tournament => {
+        const button = document.createElement("button");
+        button.textContent = tournament.name;
+        button.onclick = () => joinTournament(tournament);
+        tournamentListDiv.appendChild(button);
     });
 }
 
-
-
-function launchTournament(players) {
-    console.log("🏁 Début du tournoi !");
-    playTournament(players);
+function launchTournament()
+{
+	alert("premiere manche guys"); 
+    fetch('/launch_tournament/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // Nécessaire pour Django
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+			console.log("Tournois reçus :", data.tournaments);
+              // Affiche les tournois si la requête réussie
+        } else {
+            alert("Erreur lors de la récupération des tournois : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
 }
 
-function generateMatches(players) {
-    let matches = [];
-    for (let i = 0; i < players.length; i += 2)
-	{
-        matches.push([players[i], players[i + 1]]);
-    }
-    return matches;
+function secondRound(winner_or_looser) {
+    fetch('/secondRound/', {
+        method: 'POST',  // Correction : POST au lieu de GET
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+        },
+        body: JSON.stringify({
+            is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+			if (data.waiting)
+			{
+				let waitingPage =  document.getElementById("waitingPage");
+				waitingPage.classList.add('active');
+			}
+			// block everything and show wainting page
+            console.log("Tournoi avancé :", data.message);
+        } else {
+            alert("Erreur : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
 }
 
-function getWinners(matches) {
-    let winners = [];
-    for (let match of matches)
-	{
-        let winner = Math.floor(Math.random() * 2); // 0 ou 1 aléatoire a remplacer par le match
-        winners.push(match[winner]);
-    }
-    return winners;
+
+function lastRound(winner_or_looser) {
+    fetch('/lastRound/', {
+        method: 'POST',  // Correction : POST au lieu de GET
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+        },
+        body: JSON.stringify({
+            is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+			alert("waiting page");
+			if (data.waiting)
+			{
+				alert("waiting page");
+				let waitingPage =  document.getElementById("waitingPage");
+				waitingPage.classList.add('active');
+			}
+			// block everything and show wainting page
+            console.log("Tournoi avancé :", data.message);
+        } else {
+            alert("Erreur : " + data.error);
+        }
+    })
+    .catch(error => console.error("Erreur :", error));
 }
 
-function playTournament(players) {
-    let round = 1;
-    while (players.length > 1)
-	{
-        console.log(`⚔️ Tour ${round}:`, players);
 
 
-        let matches = generateMatches(players);
-	
-        console.log("Matchs:", matches);
-
-        players = getWinners(matches);
-        round++;
-    }
-    console.log(`🏆 Le grand vainqueur est : ${players[0]} !`);
-}
 

@@ -17,7 +17,7 @@ from django.contrib.auth import update_session_auth_hash
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
-from .models import Utilisateur, FriendRequest, Message
+from .models import Utilisateur, FriendRequest, Message, Tournoi
 
 from urllib.parse import urlencode
 
@@ -32,9 +32,9 @@ def home(request):
             'friends': friends,
             'user_id': request.user.id,
             'is_authenticated': True,
-			"picture": request.user.picture,
-			"color1": request.user.color_1,
-			"color2": request.user.color_2,
+            "picture": request.user.picture,
+            "color1": request.user.color_1,
+            "color2": request.user.color_2,
         })
     else:
         # L'utilisateur n'est pas connecté : on affiche le formulaire de login ou le contenu invité
@@ -712,10 +712,15 @@ def increment_victory(request):
             user = request.user
             user.victory += 1
             user.save()
+
+            
             return JsonResponse({"status": "success", "victory": user.victory})
+        
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
-    return JsonResponse({"status": "error", "message": "Invalid Resquest"}, satus=400)
+    
+    return JsonResponse({"status": "error", "message": "Invalid Request"}, status=400)
+
 
 
 @login_required
@@ -725,10 +730,15 @@ def increment_losses(request):
             user = request.user
             user.losses += 1
             user.save()
+            
+
             return JsonResponse({"status": "success", "losses": user.losses})
+        
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
-    return JsonResponse({"status": "error", "message": "Invalid Resquest"}, satus=400)
+    
+    return JsonResponse({"status": "error", "message": "Invalid Request"}, status=400)
+
 
 
 @login_required
@@ -907,17 +917,604 @@ def update_picture(request):
     return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
 
 
+@login_required
+def get_all_tournaments(request):
+    try:
+        tournaments = Tournoi.objects.all()  # Récupérer tous les tournois
+        tournament_data = [{"tournament_id": tournoi.tournament_id, "name": tournoi.name} for tournoi in tournaments]
+        return JsonResponse({"success": True, "tournaments": tournament_data})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+    
+
 
 @login_required
-def check_usernames_tournament(request):
+def create_tournament(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user = request.user
+
+            existing_tournament = Tournoi.objects.filter(player1=user).first()
+            if existing_tournament:
+                return JsonResponse({
+                    "success": True,
+                    "tournament_id": existing_tournament.tournament_id,
+                    "organizer": user.username,
+                    "error": "Vous avez déjà créé un tournoi."
+                })
+
+            if user.in_tournament:
+                return JsonResponse({"success": False, "error": "Vous êtes déjà inscrit à un tournoi."})
+
+
+
+            tournoi = Tournoi.objects.create(
+                name=data["name"] + user.username,
+                player1=user,
+                tournament_id=user.id
+            )
+
+            user.in_tournament = True
+            user.tournament_id = tournoi.tournament_id
+            user.tournamentRound = 1
+            user.save()
+
+            channel_layer = get_channel_layer()
+
+            all_users = Utilisateur.objects.all().values_list('id', flat=True)
+
+            for user_id in all_users:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user_id}",
+                    {
+                        "type": "new_tournament",
+                        "tournament_id": tournoi.tournament_id,
+                        "message": "is_created",
+                    },
+                )
+
+            return JsonResponse({
+                "success": True,
+                "tournament_id": tournoi.tournament_id,
+                "organizer": user.username
+            })
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+
+
+@login_required
+def delete_tournament(request):
+    if request.method == 'POST':
+        try:
+            tournament_id = request.user.id
+            user = request.user
+            user_id = request.user.id
+
+            # Récupérer le tournoi où l'utilisateur est l'organisateur
+            tournoi = Tournoi.objects.filter(player1=request.user).first()
+
+            if not tournoi:
+                return JsonResponse({"success": False, "error": "Tournoi non trouvé ou vous n'êtes pas l'organisateur."})
+
+            if tournoi.player1.id != user_id:
+                return JsonResponse({"success": False, "error": "Vous n'êtes pas l'organisateur de ce tournoi."})
+
+            # Récupérer tous les joueurs du tournoi
+            player_ids = tournoi.players  # JSONField (liste des IDs)
+            players = Utilisateur.objects.filter(id__in=player_ids)
+
+            # Réinitialiser les valeurs liées au tournoi pour chaque joueur
+
+
+            channel_layer = get_channel_layer()
+
+            async_to_sync(channel_layer.group_send)(
+                f"user_{tournoi.player1.id}",
+                {
+                    "type": "notify_join_tournament",
+                    "tournament_id" : tournoi.player1.tournament_id,
+                    "is_hosting" : True,
+                    "message": "is_destroyed",
+                },
+             )
+            
+            
+           
+            if tournoi.players:
+                player_ids = tournoi.players
+                players = Utilisateur.objects.filter(id__in=player_ids)
+
+                # Réinitialiser les valeurs liées au tournoi pour chaque joueur
+                for player in players:
+                    new_player_display(player, "is_destroyed")
+                    player.in_tournament = False
+                    player.tournament_id = -1
+                    player.tournamentRound = -1
+                    player.save()
+
+
+            request.user.in_tournament = False
+            request.user.tournament_id = -1
+            request.user.tournamentRound = -1
+            request.user.save()
+
+
+            all_users = Utilisateur.objects.all().values_list('id', flat=True)
+
+            for user_id in all_users:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{user_id}",
+                    {
+                        "type": "new_tournament",
+                        "tournament_id": tournoi.tournament_id,
+                        "message": "is_created",
+                    },
+                )
+
+            # Supprimer le tournoi
+
+            tournoi.delete()
+
+
+
+            return JsonResponse({"success": True})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+
+
+def new_player_display(player, message):
+        channel_layer = get_channel_layer()
+
+        async_to_sync(channel_layer.group_send)(
+        f"user_{player.id}",
+        {
+            "type": "notify_join_tournament",
+            "tournament_id" : player.tournament_id,
+            "is_hosting" : False,
+            "message": message,
+        },
+    )
+
+
+@login_required
+def join_tournament(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user = request.user
+            tournament_id = data["tournament_id"]  # data.get("tournament_id")
+
+            # Vérifie si le tournoi existe
+            tournoi = Tournoi.objects.filter(tournament_id=tournament_id).first()
+            if not tournoi:
+                return JsonResponse({"success": False, "error": "Tournoi introuvable."})
+
+            # Vérifie si le joueur est déjà inscrit
+            all_players = tournoi.get_players()
+            if user in all_players:
+                return JsonResponse({"success": True, "tournament_id": tournoi.tournament_id, "organizer": user.username, "error": "Vous avez déjà rejoint le tournoi."})
+            if user.in_tournament:
+                return JsonResponse({"success": False, "error": "Vous êtes déjà inscrit à un tournoi."})
+
+            # Vérifie si le tournoi est plein (max 8 joueurs)
+            if len(all_players) >= 8:
+                return JsonResponse({"success": False, "error": "Le tournoi est complet."})
+
+            # Ajoute le joueur à la liste
+            tournoi.players.append(user.id)
+            tournoi.save()
+
+            user.in_tournament = True
+            user.tournament_id = tournament_id
+            user.tournamentRound = 1
+            user.save()
+
+# websocket afficher a tout le monde le new player dans le tournament
+            player_ids = tournoi.players
+            players = Utilisateur.objects.filter(id__in=player_ids)
+
+            # Réinitialiser les valeurs liées au tournoi pour chaque joueur
+            for player in players:
+                new_player_display(player, "tournament joined")
+                player.save()
+
+            channel_layer = get_channel_layer()
+
+            async_to_sync(channel_layer.group_send)(
+                f"user_{tournoi.player1.id}",
+                {
+                    "type": "notify_join_tournament",
+                    "tournament_id" : tournoi.player1.tournament_id,
+                    "is_hosting" : True,
+                    "message": "tournament joined",
+                },
+             )
+
+            return JsonResponse({"success": True, "message": f"{user.username} a rejoint le tournoi {tournoi.name}.", "tournament_id": tournoi.tournament_id, "organizer": user.username})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+@login_required
+def quitTournament(request):
+    if request.method == "POST":
+        try:
+            user = request.user
+            tournament_id = user.tournament_id  # data.get("tournament_id")
+
+            # Vérifie si le tournoi existe
+            tournoi = Tournoi.objects.filter(tournament_id=tournament_id).first()
+            if not tournoi:
+                return JsonResponse({"success": False, "error": "Tournoi introuvable."})
+
+            # Vérifie si le joueur est déjà inscrit
+            all_players = tournoi.get_players()
+            if user not in all_players:
+                return JsonResponse({"success": True, "tournament_id": tournoi.tournament_id, "organizer": user.username, "error": "Vous n'etes pas dans ce tournoi."})
+            if not user.in_tournament:
+                return JsonResponse({"success": False, "error": "Vous êtes déjà sans tournoi."})
+
+            # Vérifie si le tournoi est plein (max 8 joueurs)
+
+            # retire le joueur à la liste
+            tournoi.players.remove(user.id)
+            tournoi.save()
+
+            user.in_tournament = False
+            user.tournament_id = -1
+            user.tournamentRound = -1
+            user.save()
+
+# websocket afficher a tout le monde le new player dans le tournament
+
+            channel_layer = get_channel_layer()
+
+            async_to_sync(channel_layer.group_send)(
+                f"user_{tournoi.player1.id}",
+                {
+                    "type": "notify_join_tournament",
+                    "tournament_id" : tournoi.player1.tournament_id,
+                    "is_hosting" : True,
+                    "message": "tournament quit",
+                },
+             )
+            
+           
+            if not tournoi.players:
+                return JsonResponse({"success": True, "message": f"{user.username} a quitter le tournoi {tournoi.name}.", "tournament_id": tournoi.tournament_id, "organizer": user.username})
+            player_ids = tournoi.players
+            players = Utilisateur.objects.filter(id__in=player_ids)
+
+            # Réinitialiser les valeurs liées au tournoi pour chaque joueur
+            for player in players:
+                print("QHHHHHQHQH")
+                print(player)
+                new_player_display(player, "tournament quit")
+
+
+            return JsonResponse({"success": True, "message": f"{user.username} a quitter le tournoi {tournoi.name}.", "tournament_id": tournoi.tournament_id, "organizer": user.username})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
+
+
+@login_required
+def get_tournament_players(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            tournament_id = data.get("tournament_id")  # Récupérer l'ID du tournoi
+
+            # Vérifie si le tournoi existe
+            tournoi = Tournoi.objects.get(tournament_id=tournament_id)
+
+            # Récupère les joueurs dans l'ordre (organisateur en premier)
+            players = tournoi.get_players()
+            player_names = [player.username for player in players]  # Liste des usernames
+
+            return JsonResponse({"success": True, "players": player_names})
+
+        except Tournoi.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
+
+
+def match1v1_tournament(player1, player2, tournament_id):
+    channel_layer = get_channel_layer()
+
+    p1 = Utilisateur.objects.filter(username=player1).first()
+    p2 = Utilisateur.objects.filter(username=player2).first()
+
+    if not p1 or not p2:
+        return  # Sécurité si un joueur n'existe pas
+
+    p1_data = {
+        "id": p1.id,
+        "username": p1.username,
+        "email": p1.email,  # Ajoute les infos nécessaires
+    }
+    p2_data = {
+        "id": p2.id,
+        "username": p2.username,
+        "email": p2.email,
+    }
+
+    async_to_sync(channel_layer.group_send)(
+        f"user_{p1.id}",
+        {
+            "type": "match_tournament",
+            "tournament_id": tournament_id,
+            "is_hosting": "true",
+            "user": p1_data,
+            "opponent": p2_data,  # Infos de l'adversaire
+            "round": p1.tournamentRound,
+        },
+    )
+    async_to_sync(channel_layer.group_send)(
+        f"user_{p2.id}",
+        {
+            "type": "match_tournament",
+            "tournament_id": tournament_id,
+            "is_hosting": "false",
+            "user": p2_data,
+            "opponent": p1_data,  # Infos de l'adversaire
+            "round": p2.tournamentRound,
+        },
+    )
+
+
+
+
+@login_required
+def launch_tournament(request):
+    if request.method == "POST":
+        try:
+            print("HERE")
+            tournament_id = request.user.id  # Récupérer l'ID du tournoi
+            print(tournament_id)
+
+            # Vérifie si le tournoi existe
+            tournoi = Tournoi.objects.get(tournament_id=tournament_id)
+            print("HERE")
+
+            # Récupère les joueurs dans l'ordre (organisateur en premier)
+            players = tournoi.get_players()
+            player_names = [player.username for player in players]  # Liste des usernames
+            
+            # Vérifie qu'il y a assez de joueurs pour éviter les erreurs d'index
+            
+            match1v1_tournament(players[0], players[1], tournament_id)
+            
+            # match1v1_tournament(players[2], players[3], tournament_id)
+            
+            # match1v1_tournament(players[4], players[5])
+            
+            # match1v1_tournament(players[6], players[7])
+
+            return JsonResponse({"success": True, "players": player_names})
+
+        except Tournoi.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
+
+
+
+
+@login_required
+def secondRound(request):
+    """Ajoute le joueur gagnant au round suivant et vérifie s'il est prêt."""
     if request.method != "POST":
-        return JsonResponse({"status": "error", "message": "Méthode non autorisée."}, status=405)
+        return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
 
-    usernames = request.POST.get("usernames", "").split(",")
-    if not usernames or usernames == [""]:
-        return JsonResponse({"status": "error", "message": "Aucun pseudo fourni."}, status=400)
+    try:
+        user = request.user
+        data = json.loads(request.body)
+        is_winner = data.get("is_winner")
 
-    existing_users = set(Utilisateur.objects.filter(username__in=usernames).values_list("username", flat=True))
-    missing_users = [user for user in usernames if user not in existing_users]
+        tournoi = Tournoi.objects.filter(tournament_id=user.tournament_id).first()
+        if not tournoi:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
 
-    return JsonResponse({"status": "success", "all_exist": not missing_users, "missing": missing_users})
+        if is_winner == 1:
+            print(f"Je suis {user.username}, le gagnant.")
+        if is_winner == 0:
+            print(f"Je suis {user.username}, le perdant.")
+
+
+        tournoi.winnerRound1.append(user.id)
+
+        tournoi.save()
+        user.tournamentRound += 1
+        user.save()
+        print("len des gens pret a jouer : ", len(tournoi.winnerRound1), "|\n")
+        print("list : ", tournoi.winnerRound1, "\n")
+
+        if len(tournoi.winnerRound1) == 1:
+            return JsonResponse({"success": True, "message": "Veuillez attendre que tout le monde finissent sa partie.", "waiting": True,})
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
+
+        
+
+        tournoi.whichRound += 1
+        tournoi.save()
+
+        p1 = Utilisateur.objects.filter(id=tournoi.winnerRound1[0]).first()
+        p2 = Utilisateur.objects.filter(id=tournoi.winnerRound1[1]).first()
+
+        match1v1_tournament(p1.username, p2.username, tournoi.tournament_id)
+
+            # Lancer les matchs (exception si seulement 2 joueurs restants)
+            # if len(players) == 4:
+            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
+            #     match1v1_tournament(players[2], players[3], tournoi.tournament_id)
+            # elif len(players) == 2:
+            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
+
+        return JsonResponse({"success": True, "message": "Round mis à jour."})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+@login_required
+def lastRound(request):
+    """Ajoute le joueur gagnant au round suivant et vérifie s'il est prêt."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
+
+    try:
+        user = request.user
+        data = json.loads(request.body)
+        is_winner = data.get("is_winner")
+
+        tournoi = Tournoi.objects.filter(tournament_id=user.tournament_id).first()
+        if not tournoi:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+
+        if is_winner == 1:
+            print(f"Je suis {user.username}, le gagnant.")
+        if is_winner == 0:
+            print(f"Je suis {user.username}, le perdant.")
+
+
+        tournoi.winnerRound2.append(user.id)
+
+        tournoi.save()
+        user.tournamentRound += 1
+        user.save()
+        print("len des gens pret a jouer : ", len(tournoi.winnerRound1), "|\n")
+        print("list : ", tournoi.winnerRound1, "\n")
+
+        if len(tournoi.winnerRound1) == 1:
+            return JsonResponse({"success": True, "message": "Veuillez attendre que tout le monde finissent sa partie.", "waiting": True,})
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
+
+        
+
+        tournoi.whichRound += 1
+        tournoi.save()
+
+        p1 = Utilisateur.objects.filter(id=tournoi.winnerRound2[0]).first()
+        p2 = Utilisateur.objects.filter(id=tournoi.winnerRound2[1]).first()
+
+        match1v1_tournament(p1.username, p2.username, tournoi.tournament_id)
+
+            # Lancer les matchs (exception si seulement 2 joueurs restants)
+            # if len(players) == 4:
+            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
+            #     match1v1_tournament(players[2], players[3], tournoi.tournament_id)
+            # elif len(players) == 2:
+            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
+
+        return JsonResponse({"success": True, "message": "Round mis à jour."})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+        
+
+
+def secondRoundLoose(request):
+    """Ajoute le joueur gagnant au round suivant et vérifie s'il est prêt."""
+    try:
+        user = request.user
+
+        tournoi = Tournoi.objects.filter(tournament_id=user.tournament_id).first()
+
+
+        if tournoi.whichRound == 1:
+            tournoi.winnerRound1.append(user.id)
+        elif tournoi.whichRound == 2:
+            tournoi.winnerRound2.append(user.id)
+        elif tournoi.whichRound == 3:
+            tournoi.winnerLastRound = str(user.id)  # Stocké en str si c'est un CharField
+
+        tournoi.save()
+
+        user.tournamentRound = tournoi.whichRound
+        user.save()
+
+        # Vérifie si tous les joueurs sont prêts pour passer au round suivant
+        if tournoi.start_round2():
+            players = tournoi.get_players()
+
+            # Lancer les matchs si 4 joueurs sont prêts mais 2 execeptionellemtn
+            if len(players) == 2:
+                match1v1_tournament(players[0], players[1], tournoi.tournament_id)
+                match1v1_tournament(players[2], players[3], tournoi.tournament_id)
+
+        return JsonResponse({"success": True, "message": "Round mis à jour."})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+# def secondRoundLoose(user, tournament_id):
+#     """Ajoute le joueur perdant dans la liste des éliminés du tournoi."""
+
+#     try:
+#         tournoi = Tournoi.objects.get(tournament_id=tournament_id)
+        
+#         # Ajouter le perdant dans la liste du round actuel
+#         if tournoi.whichRound == 0:
+#             tournoi.looserRound1.append(user.id)
+#         elif tournoi.whichRound == 1:
+#             tournoi.looserRound2.append(user.id)
+#         elif tournoi.whichRound == 2:
+#             tournoi.looserLastRound = user.id  # Dernier round, dernier perdant
+
+#         tournoi.save()
+
+#         user.in_tournament = False
+#         user.tournament_id = -1
+#         user.tournamentRound = -1
+#         user.save()
+
+#     except Tournoi.DoesNotExist:
+#         print("Tournoi introuvable")
+#     except Exception as e:
+#         print(f"Erreur: {str(e)}")
+
+
+
+
+
+def lastRoundLoose(request):
+    print("caca")
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             tournament_id = data.get("tournament_id")  # Récupérer l'ID du tournoi
+
+#             # Vérifie si le tournoi existe
+#             tournoi = Tournoi.objects.get(tournament_id=tournament_id)
+
+#             # Récupère les joueurs dans l'ordre (organisateur en premier)
+#             players = tournoi.get_players()
+#             player_names = [player.username for player in players]  # Liste des usernames
+
+#             return JsonResponse({"success": True, "players": player_names})
+
+#         except Tournoi.DoesNotExist:
+#             return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+#         except Exception as e:
+#             return JsonResponse({"success": False, "error": str(e)})
+
+#     return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
