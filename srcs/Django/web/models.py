@@ -14,7 +14,7 @@ class Utilisateur(AbstractUser):
     picture = models.IntegerField(default=0)
     color_1 = models.CharField(default="#ffffff")
     color_2 = models.CharField(default="#000000")
-    
+
     def add_match(self, opponent_username, result, score_player, score_opponent):
         """
         Adds a new match to the user's match history.

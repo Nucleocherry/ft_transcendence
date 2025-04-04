@@ -397,11 +397,12 @@
 			<button class="simple-button" onclick="submitColors()">Enregistrer</button>
 
 			<button class="SettingsSetting_Button" data-target="usernameChangeForm">Change Username</button>
-			<form id="usernameChangeForm" action="/change_username/" method="POST" style="display: none;">
+			<form id="usernameChangeForm" action="/change_username/" method="POST" style="display: none;" >
 			  {% csrf_token %}
-			  <input type="text" name="username" placeholder="Change Username" required>
-			  <input type="text" name="confirm_username" placeholder="Confirm Username" required>
-			  <button type="submit">Changer Username</button>
+			  <input type="text" name="username" placeholder="Change Username" required class="addFriendButton" style="cursor: auto;">
+			  <input type="text" name="confirm_username" placeholder="Confirm Username" required class="addFriendButton" style="cursor: auto;">
+			  <br>
+			  <button type="submit" class="addFriendButton" style="width: auto;">Changer Username</button>
 			  <button type="button" class="cancelButton" data-target="usernameChangeForm">Annuler</button>
 			</form>
 
@@ -410,9 +411,10 @@
 			<button class="SettingsSetting_Button" data-target="passwordChangeForm">Change Password</button>
 			<form id="passwordChangeForm" action="/change_password/"  method="POST" style="display: none;">
 			  {% csrf_token %}
-			  <input type="password" name="password" placeholder="Change Password" required>
-			  <input type="password" name="confirm_password" placeholder="Confirm Password" required>
-			  <button type="submit">Changer Password</button>
+			  <input type="password" name="password" placeholder="Change Password" required class="addFriendButton" style="cursor: auto;">
+			  <input type="password" name="confirm_password" placeholder="Confirm Password" required class="addFriendButton" style="cursor: auto;">
+			  <br>
+			  <button type="submit" class="addFriendButton" style="width: auto;">Changer Password</button>
 			  <button type="button" class="cancelButton" data-target="passwordChangeForm">Annuler</button>
 			</form>
 

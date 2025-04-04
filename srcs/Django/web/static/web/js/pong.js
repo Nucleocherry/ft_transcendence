@@ -18,11 +18,8 @@ let refresh_rate = 10
 let blood_mode = 0;
 let color = "black"
 let skin = "black"
-
 let in_tournament = 0;
 let tournamentRound = 0;
-
-
 /*------------CLIENT-PLAYER-MOVEMENT----------------------------------------*/
 function move_remote_ball(data)
 {
@@ -281,43 +278,46 @@ document.addEventListener('DOMContentLoaded', () => {
 				})
 			}
 			if (friendtrigger === 1)
-				{
-					fetch('/add_match_history/', {
-						method: "POST",
-						headers: {
-							"X-CSRFToken": getCSRFToken(),
-							"Content-Type": "application/json"
-						},
-						body: JSON.stringify({
-							opponent_username: p2_username,
-							result: result,
-							score_player: p1.points,
-							score_opponent: p2.points,
-						})
+			{
+				fetch('/add_match_history/', {
+					method: "POST",
+					headers: {
+						"X-CSRFToken": getCSRFToken(),
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({
+						opponent_username: p2_username,
+						result: result,
+						score_player: p1.points,
+						score_opponent: p2.points,
 					})
-					.then(reponse => reponse.json())
-					.then(data => {
-						if (data.success) {
-							showMatchHistory(); // Now correctly waits for the fetch response before updating the UI
-						}
-					})
-					.catch(error => console.error("Error updating match history:", error));
-				}
-				if (in_tournament === 1)
+				})
+				.then(reponse => reponse.json())
+				.then(data => {
+					if (data.success) {
+						showMatchHistory(); // Now correctly waits for the fetch response before updating the UI
+					}
+				})
+				.catch(error => console.error("Error updating match history:", error));
+			}
+			if (in_tournament === 1)
 				{
 					if (tournamentRound === 0)
 					{
-						alert("deuxieme manche mache wola");
+						
 						if (p1.points === 5 && friendtrigger === 1)
 						{
-							secondRound(1);	
+							alert("deuxieme manche mache wola");
 							tournamentRound++;
+							secondRound(1);	
+
 						}
-						else
+						else if (p2.points === 5 && friendtrigger === 1)
 						{
+							in_tournament = 0;
+							tournamentRound = 0;
 							secondRound(0)
-							tournamentRound++; //faudra faire que ca se mette a zero si on a perdu avec la 
-							// in_tournament = 0; tournamentRound = 0;
+
 						}
 						
 					}
@@ -326,17 +326,32 @@ document.addEventListener('DOMContentLoaded', () => {
 						alert("vive le caca rtoisieme manche");
 						if (p1.points === 5 && friendtrigger === 1)
 						{
-							lastRound(1);	
 							tournamentRound++;
+							lastRound(1);	
+							
 						}
-						else
+						else if (p2.points === 5 && friendtrigger === 1)
 						{
+							in_tournament = 0;
+							tournamentRound = 0;
 							lastRound(0)
-							tournamentRound++; //faudra faire que ca se mette a zero si on a perdu avec la 
-							// in_tournament = 0; tournamentRound = 0;
+
 						}
 					}
-
+					else if (tournamentRound === 2)
+					{
+						if (p1.points === 5 && friendtrigger === 1)
+						{
+							alert("vous avez gagne");
+							finishTournament(1);		
+						}
+						else if (p2.points === 5 && friendtrigger === 1)
+						{
+							finishTournament(0);
+						}
+						in_tournament = 0;
+						tournamentRound = 0;
+					}
 				}
 
 			reInitialize();

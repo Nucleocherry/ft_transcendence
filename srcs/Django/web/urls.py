@@ -46,13 +46,11 @@ urlpatterns = [
     path('match-history/', views.get_match_history, name='match_history'),
     path('add_match_history/', views.add_match_history, name='add_match_history'),
 
-
-
     #API PATH
     path('auth/42/', views.redirect_to_42, name='auth_42'),
     path('auth/42/callback/', views.auth_callback, name='auth_callback'),
 
-
+	
 	path('create_tournament/', views.create_tournament, name='create_tournament'), #pour search bar
 	path('delete_tournament/', views.delete_tournament, name='delete_tournament'), #pour search bar
 
@@ -65,4 +63,9 @@ urlpatterns = [
 	path('launch_tournament/', views.launch_tournament, name='launch_tournament'),
 	path('secondRound/', views.secondRound, name='secondRound'),
 	path('lastRound/', views.lastRound, name='lastRound'),
+
+	path('secondRoundLoose/', views.secondRound, name='secondRound'),
+	path('lastRoundLoose/', views.lastRound, name='lastRound'),
+
+	path('finishTournament/', views.finishTournament, name='finishTournament'),
 ]

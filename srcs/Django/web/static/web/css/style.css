@@ -634,6 +634,33 @@ height: auto !important;
 }
 
 /*friend BUTTON SETUP*/
+.cancelButton
+{
+	display: flex;  /* Active Flexbox */
+    align-items: center; /* Centre verticalement */
+    justify-content: center; /* Centre horizontalement (optionnel) */
+
+	background-color: #191919; /*permet d'enlever le fond blanc moche*/
+	font-family: 'Poiret One', serif;/*defini la police du texte*/
+	color: #ffffff; /* Définit une couleur de title en noir (optionnel) */	
+
+	font-size: 1.2em; /* 1.2 fois la taille de la police de l'élément parent */
+	border-radius: 10px;
+	height: 40%;
+	padding: 0;
+
+	line-height: auto;
+
+	border: 2px solid #ffffff;
+	border-color: white;
+
+	cursor: pointer;  /* Change le curseur pour indiquer que c'est cliquable */
+    transition: 0.3s ease;  /* Transition pour l'effet de hover */
+
+	flex-grow: 1; /* Fait en sorte que les boutons prennent toute la largeur disponible de manière égale */
+    margin: 0 5px;  /* Espace entre les boutons */
+}
+
 .addFriendButton
 {
 	display: flex;  /* Active Flexbox */
@@ -1062,7 +1089,6 @@ height: auto !important;
     visibility:visible;
 }
 
-
 .waitingPage
 {
 	display: none;
@@ -1267,20 +1293,13 @@ height: auto !important;
 }
 
 #joinPage {
-
-	width: 100%; /* Ajuste selon la taille souhaitée */
+	
+    width: 100%; /* Ajuste selon la taille souhaitée */
 	height: 100%;
     align-items: center;
     justify-content: center;
     position: relative;
 }
-
-
-
-
-
-
-
 
 
 /*TOMAINPAGE BUTTON SETUP*/

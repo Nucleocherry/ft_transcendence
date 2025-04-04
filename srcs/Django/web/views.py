@@ -1009,8 +1009,6 @@ def delete_tournament(request):
             players = Utilisateur.objects.filter(id__in=player_ids)
 
             # Réinitialiser les valeurs liées au tournoi pour chaque joueur
-
-
             channel_layer = get_channel_layer()
 
             async_to_sync(channel_layer.group_send)(
@@ -1021,10 +1019,7 @@ def delete_tournament(request):
                     "is_hosting" : True,
                     "message": "is_destroyed",
                 },
-             )
-            
-            
-           
+             )          
             if tournoi.players:
                 player_ids = tournoi.players
                 players = Utilisateur.objects.filter(id__in=player_ids)
@@ -1037,15 +1032,11 @@ def delete_tournament(request):
                     player.tournamentRound = -1
                     player.save()
 
-
             request.user.in_tournament = False
             request.user.tournament_id = -1
             request.user.tournamentRound = -1
             request.user.save()
-
-
             all_users = Utilisateur.objects.all().values_list('id', flat=True)
-
             for user_id in all_users:
                 async_to_sync(channel_layer.group_send)(
                     f"user_{user_id}",
@@ -1057,11 +1048,7 @@ def delete_tournament(request):
                 )
 
             # Supprimer le tournoi
-
             tournoi.delete()
-
-
-
             return JsonResponse({"success": True})
 
         except Exception as e:
@@ -1301,11 +1288,11 @@ def launch_tournament(request):
             
             match1v1_tournament(players[0], players[1], tournament_id)
             
-            # match1v1_tournament(players[2], players[3], tournament_id)
+            match1v1_tournament(players[2], players[3], tournament_id)
             
-            # match1v1_tournament(players[4], players[5])
+            match1v1_tournament(players[4], players[5], tournament_id)
             
-            # match1v1_tournament(players[6], players[7])
+            match1v1_tournament(players[6], players[7], tournament_id)
 
             return JsonResponse({"success": True, "players": player_names})
 
@@ -1338,41 +1325,84 @@ def secondRound(request):
             print(f"Je suis {user.username}, le gagnant.")
         if is_winner == 0:
             print(f"Je suis {user.username}, le perdant.")
+            return JsonResponse({"success": False, "message": "YOU SHOULD NOT BE HERE."})
 
 
-        tournoi.winnerRound1.append(user.id)
+        tournoi.winnerRound1.append(user.id)  # Ajoute l'ID du joueur
+        tournoi.winnerRound1 = list(tournoi.winnerRound1)  # Force Django à voir le changement
+        tournoi.save()  # Sauvegarde en base
 
-        tournoi.save()
         user.tournamentRound += 1
         user.save()
         print("len des gens pret a jouer : ", len(tournoi.winnerRound1), "|\n")
         print("list : ", tournoi.winnerRound1, "\n")
 
-        if len(tournoi.winnerRound1) == 1:
+        if len(tournoi.winnerRound1) < 4:
             return JsonResponse({"success": True, "message": "Veuillez attendre que tout le monde finissent sa partie.", "waiting": True,})
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
 
         
 
         tournoi.whichRound += 1
         tournoi.save()
 
-        p1 = Utilisateur.objects.filter(id=tournoi.winnerRound1[0]).first()
-        p2 = Utilisateur.objects.filter(id=tournoi.winnerRound1[1]).first()
-
-        match1v1_tournament(p1.username, p2.username, tournoi.tournament_id)
-
-            # Lancer les matchs (exception si seulement 2 joueurs restants)
-            # if len(players) == 4:
-            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
-            #     match1v1_tournament(players[2], players[3], tournoi.tournament_id)
-            # elif len(players) == 2:
-            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
+        if len(tournoi.winnerRound1) >= 4:
+            p1 = Utilisateur.objects.filter(id=tournoi.winnerRound1[0]).first()
+            p2 = Utilisateur.objects.filter(id=tournoi.winnerRound1[1]).first()
+            p3 = Utilisateur.objects.filter(id=tournoi.winnerRound1[2]).first()
+            p4 = Utilisateur.objects.filter(id=tournoi.winnerRound1[3]).first()
+            match1v1_tournament(p1.username, p2.username, tournoi.tournament_id)
+            match1v1_tournament(p3.username, p4.username, tournoi.tournament_id)
+        else:
+            p1 = p2 = p3 = p4 = None  # Évite une IndexError si la liste est trop courte
 
         return JsonResponse({"success": True, "message": "Round mis à jour."})
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+
+
+        
+
+
+@login_required
+def secondRoundLoose(request):
+    """Ajoute le joueur gagnant au round suivant et vérifie s'il est prêt."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
+
+    try:
+        user = request.user
+        data = json.loads(request.body)
+        is_winner = data.get("is_winner")
+
+        tournoi = Tournoi.objects.filter(tournament_id=user.tournament_id).first()
+        if not tournoi:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+
+        if is_winner == 1:
+            print(f"Je suis {user.username}, le gagnant.")
+        if is_winner == 0:
+            print(f"Je suis {user.username}, le perdant. et dans secondroundloose")
+
+
+        tournoi.looserRound1.append(user.id)
+        if user.id in tournoi.players:
+            tournoi.players.remove(user.id)
+        tournoi.save()
+
+        if user.tournament_id != user.id:
+            user.tournamentRound = -1
+            user.tournament_id = -1
+            user.in_tournament = False
+            user.save()
+  
+        return JsonResponse({"success": True, "message": "Round mis à jour."})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+
 
 @login_required
 def lastRound(request):
@@ -1393,128 +1423,155 @@ def lastRound(request):
             print(f"Je suis {user.username}, le gagnant.")
         if is_winner == 0:
             print(f"Je suis {user.username}, le perdant.")
+            return JsonResponse({"success": False, "message": "YOU SHOULD NOT BE HERE."})
 
 
-        tournoi.winnerRound2.append(user.id)
+        tournoi.winnerRound2.append(user.id)  # Ajoute l'ID du joueur
+        tournoi.winnerRound2 = list(tournoi.winnerRound2)  # Force Django à voir le changement
+        tournoi.save()  # Sauvegarde en base
 
-        tournoi.save()
+
         user.tournamentRound += 1
         user.save()
         print("len des gens pret a jouer : ", len(tournoi.winnerRound1), "|\n")
         print("list : ", tournoi.winnerRound1, "\n")
 
-        if len(tournoi.winnerRound1) == 1:
+        if len(tournoi.winnerRound2) < 2:
             return JsonResponse({"success": True, "message": "Veuillez attendre que tout le monde finissent sa partie.", "waiting": True,})
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n")
-
         
 
         tournoi.whichRound += 1
         tournoi.save()
 
-        p1 = Utilisateur.objects.filter(id=tournoi.winnerRound2[0]).first()
-        p2 = Utilisateur.objects.filter(id=tournoi.winnerRound2[1]).first()
+        if len(tournoi.winnerRound2) >= 2:
+            p1 = Utilisateur.objects.filter(id=tournoi.winnerRound2[0]).first()
+            p2 = Utilisateur.objects.filter(id=tournoi.winnerRound2[1]).first()
+            match1v1_tournament(p1.username, p2.username, tournoi.tournament_id)
+        else:
+            p1, p2 = None, None
 
-        match1v1_tournament(p1.username, p2.username, tournoi.tournament_id)
 
-            # Lancer les matchs (exception si seulement 2 joueurs restants)
-            # if len(players) == 4:
-            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
-            #     match1v1_tournament(players[2], players[3], tournoi.tournament_id)
-            # elif len(players) == 2:
-            #     match1v1_tournament(players[0], players[1], tournoi.tournament_id)
 
         return JsonResponse({"success": True, "message": "Round mis à jour."})
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
 
-        
 
 
-def secondRoundLoose(request):
+@login_required
+def lastRoundLoose(request):
     """Ajoute le joueur gagnant au round suivant et vérifie s'il est prêt."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
+
     try:
         user = request.user
+        data = json.loads(request.body)
+        is_winner = data.get("is_winner")
 
         tournoi = Tournoi.objects.filter(tournament_id=user.tournament_id).first()
+        if not tournoi:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+
+        if is_winner == 1:
+            print(f"Je suis {user.username}, le gagnant.")
+        if is_winner == 0:
+            print(f"Je suis {user.username}, le perdant. dans lasr round loose")
 
 
-        if tournoi.whichRound == 1:
-            tournoi.winnerRound1.append(user.id)
-        elif tournoi.whichRound == 2:
-            tournoi.winnerRound2.append(user.id)
-        elif tournoi.whichRound == 3:
-            tournoi.winnerLastRound = str(user.id)  # Stocké en str si c'est un CharField
+        tournoi.looserRound1.append(user.id)
+        if user.id in tournoi.players:
+            tournoi.players.remove(user.id)
+        tournoi.save()
+
+        if user.tournament_id != user.id:
+            user.tournamentRound = -1
+            user.tournament_id = -1
+            user.in_tournament = False
+            user.save()
+
+        return JsonResponse({"success": True, "message": "Round mis à jour."})
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+    
+
+@login_required
+def finishTournament(request):
+    """Ajoute le joueur gagnant au round suivant et vérifie s'il est prêt."""
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)
+
+    try:
+        user = request.user
+        data = json.loads(request.body)
+        is_winner = data.get("is_winner")
+
+        tournoi = Tournoi.objects.filter(tournament_id=user.tournament_id).first()
+        if not tournoi:
+            return JsonResponse({"success": False, "error": "Tournoi introuvable"})
+
+        if is_winner == 1:
+            tournoi.winnerLastRound.append(user.id)
+        if is_winner == 0:
+            tournoi.looserLastRound.append(user.id)
+            return JsonResponse({"success": True, "message": "tournois mis à jour."})
 
         tournoi.save()
 
-        user.tournamentRound = tournoi.whichRound
+        user.tournamentRound = -1
+        user.tournament_id = -1
+        user.in_tournament = False
         user.save()
 
-        # Vérifie si tous les joueurs sont prêts pour passer au round suivant
-        if tournoi.start_round2():
-            players = tournoi.get_players()
+        player_ids = tournoi.players  # JSONField (liste des IDs)
+        players = Utilisateur.objects.filter(id__in=player_ids)
 
-            # Lancer les matchs si 4 joueurs sont prêts mais 2 execeptionellemtn
-            if len(players) == 2:
-                match1v1_tournament(players[0], players[1], tournoi.tournament_id)
-                match1v1_tournament(players[2], players[3], tournoi.tournament_id)
+            # Réinitialiser les valeurs liées au tournoi pour chaque joueur
+        channel_layer = get_channel_layer()
 
-        return JsonResponse({"success": True, "message": "Round mis à jour."})
+        async_to_sync(channel_layer.group_send)(
+            f"user_{tournoi.player1.id}",
+            {
+                "type": "notify_join_tournament",
+                "tournament_id" : tournoi.player1.tournament_id,
+                "is_hosting" : True,
+                "message": "is_destroyed",
+            },
+            )          
+        if tournoi.players:
+            player_ids = tournoi.players
+            players = Utilisateur.objects.filter(id__in=player_ids)
+
+            # Réinitialiser les valeurs liées au tournoi pour chaque joueur
+            for player in players:
+                new_player_display(player, "is_destroyed")
+                player.in_tournament = False
+                player.tournament_id = -1
+                player.tournamentRound = -1
+                player.save()
+
+        tournoi.player1.in_tournament = False
+        tournoi.player1.tournament_id = -1
+        tournoi.player1.tournamentRound = -1
+        tournoi.player1.save()
+
+        all_users = Utilisateur.objects.all().values_list('id', flat=True)
+        for user_id in all_users:
+            async_to_sync(channel_layer.group_send)(
+                f"user_{user_id}",
+                {
+                    "type": "new_tournament",
+                    "tournament_id": tournoi.tournament_id,
+                    "message": "is_created",
+                },
+            )
+
+        # Supprimer le tournoi
+        tournoi.delete()
+
+        return JsonResponse({"success": True, "message": "tournois mis à jour."})
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
-
-# def secondRoundLoose(user, tournament_id):
-#     """Ajoute le joueur perdant dans la liste des éliminés du tournoi."""
-
-#     try:
-#         tournoi = Tournoi.objects.get(tournament_id=tournament_id)
-        
-#         # Ajouter le perdant dans la liste du round actuel
-#         if tournoi.whichRound == 0:
-#             tournoi.looserRound1.append(user.id)
-#         elif tournoi.whichRound == 1:
-#             tournoi.looserRound2.append(user.id)
-#         elif tournoi.whichRound == 2:
-#             tournoi.looserLastRound = user.id  # Dernier round, dernier perdant
-
-#         tournoi.save()
-
-#         user.in_tournament = False
-#         user.tournament_id = -1
-#         user.tournamentRound = -1
-#         user.save()
-
-#     except Tournoi.DoesNotExist:
-#         print("Tournoi introuvable")
-#     except Exception as e:
-#         print(f"Erreur: {str(e)}")
-
-
-
-
-
-def lastRoundLoose(request):
-    print("caca")
-#     if request.method == "POST":
-#         try:
-#             data = json.loads(request.body)
-#             tournament_id = data.get("tournament_id")  # Récupérer l'ID du tournoi
-
-#             # Vérifie si le tournoi existe
-#             tournoi = Tournoi.objects.get(tournament_id=tournament_id)
-
-#             # Récupère les joueurs dans l'ordre (organisateur en premier)
-#             players = tournoi.get_players()
-#             player_names = [player.username for player in players]  # Liste des usernames
-
-#             return JsonResponse({"success": True, "players": player_names})
-
-#         except Tournoi.DoesNotExist:
-#             return JsonResponse({"success": False, "error": "Tournoi introuvable"})
-#         except Exception as e:
-#             return JsonResponse({"success": False, "error": str(e)})
-
-#     return JsonResponse({"success": False, "error": "Méthode non autorisée"}, status=405)

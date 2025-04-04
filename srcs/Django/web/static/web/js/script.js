@@ -106,34 +106,34 @@ document.addEventListener("DOMContentLoaded", () => {
 			MenuTrigger = 3;
 
 		}
-
+		
 		else if (data.type === "match_tournament")
+		{
+
+			let waitingPage =  document.getElementById("waitingPage");
+			waitingPage.classList.remove('active');
+			
+			if (data.is_hosting == "true")
 			{
-
-				let waitingPage =  document.getElementById("waitingPage");
-				waitingPage.classList.remove('active');
-				
-				if (data.is_hosting == "true")
-				{
-					user_id = data.opponent.id;
-					p2_username = data.opponent.username
-					friendtrigger = 1;	
-					in_tournament = 1
-					alert("Le match contre : ", p2_username, "Va commencer !");
-					activateFriendGame();
-				}
-				else
-				{
-					hostname = data.opponent.username;
-					user_id = data.opponent.id;
-					p2_username = data.opponent.username
-					friendtrigger = 1;
-					in_tournament = 1
-					alert("Le match contre : ", p2_username, "Va commencer !");
-					activateFriendGame();
-
-				}		
+				user_id = data.opponent.id;
+				p2_username = data.opponent.username
+				friendtrigger = 1;	
+				in_tournament = 1
+				alert("Le match contre : " + p2_username + " va commencer !");
+				activateFriendGame();
 			}
+			else
+			{
+				hostname = data.opponent.username;
+				user_id = data.opponent.id;
+				p2_username = data.opponent.username
+				friendtrigger = 1;
+				in_tournament = 1
+				alert("Le match contre : " + p2_username + " va commencer !");
+				activateFriendGame();
+
+			}		
+		}
 		else if (data.type ==="notify_join_tournament")
 		{
 			if (data.is_hosting)
@@ -253,7 +253,7 @@ function returnToPreviousMenu()
 		online.classList.add('active');
 		friendTitle.classList.remove('active');
 		friendMenu[0].classList.remove('active');
-
+		
 		createMenu.classList.remove('active');
 		joinMenu.classList.remove('active');
 		createPage.classList.remove('active');
@@ -272,7 +272,7 @@ function returnToPreviousMenu()
 
 		online.classList.remove('active');
 		local.classList.remove('active');
-	
+
 		returnButton.classList.add('active');
 	}
 	else if (MenuTrigger === 4)
@@ -310,6 +310,7 @@ function activateAiGame()
 	let returnButton = document.getElementById('ReturnButton');
 	let joinMenu = document.getElementById('joinMenu');
 	let createMenu = document.getElementById('createMenu');
+
 	returnButton.classList.remove('active');
 	GameMenu.classList.add('inactive');
 	TheGame.classList.add('active');
@@ -415,7 +416,6 @@ function joinTournamentMenu()
 	let joinPage = document.getElementById('joinPage');
 	let createPage = document.getElementById('createPage');
 
-
 	MenuTrigger = 4;
 
 
@@ -436,6 +436,7 @@ function joinTournamentMenu()
 	joinTournamentFunction();
 
 }
+
 function createTournamentMenu()
 {
 	let VsAi = document.getElementById('VsAi');
@@ -448,7 +449,6 @@ function createTournamentMenu()
 
 	let joinMenu = document.getElementById('joinMenu');
 	let createMenu = document.getElementById('createMenu');
-
 
 	MenuTrigger = 4;
 
@@ -463,18 +463,10 @@ function createTournamentMenu()
 
 	createPage.classList.add('active');
 	joinPage.classList.remove('active');
-
 	tournamentButton.classList.add('inactive');
 
-
-
 	returnButton.classList.add('active');
-	
 	createTournamentFunction();
-
-
-
-	
 }
 
 function activateFriendGame()
@@ -509,7 +501,6 @@ function handleGameInvite(_data)
 	let tournament8 = document.getElementById('tournament8');
 	let tournamentButton = document.getElementById('Tournament');
 
-	
 //	console.log("_data.hostname:", _data.hostname);
 	fetch(`/search_users/?q=${_data.hostname}`) // make a global setup
 	.then(response => response.json())
@@ -1724,13 +1715,6 @@ function updatePicture(pictureName) {
 }
 
 
-
-
-
-
-
-
-
 // TOURNOIS ---------------------------------------------
 
 
@@ -1980,48 +1964,153 @@ function launchTournament()
 }
 
 function secondRound(winner_or_looser) {
-    fetch('/secondRound/', {
-        method: 'POST',  // Correction : POST au lieu de GET
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),  // Sécurité Django
-        },
-        body: JSON.stringify({
-            is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-			if (data.waiting)
-			{
-				let waitingPage =  document.getElementById("waitingPage");
-				waitingPage.classList.add('active');
+
+	if (winner_or_looser == 0)
+	{
+		fetch('/secondRoundLoose/', {
+			method: 'POST',  // Correction : POST au lieu de GET
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+			},
+			body: JSON.stringify({
+				is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				scrollToMainPage();
+				if (data.waiting)
+				{
+					let waitingPage =  document.getElementById("waitingPage");
+					waitingPage.classList.add('active');
+					
+				}
+				// block everything and show wainting page
+				console.log("Tournoi avancé :", data.message);
+			} else {
+				alert("Erreur : " + data.error);
 			}
-			// block everything and show wainting page
-            console.log("Tournoi avancé :", data.message);
-        } else {
-            alert("Erreur : " + data.error);
-        }
-    })
-    .catch(error => console.error("Erreur :", error));
+		})
+		.catch(error => console.error("Erreur :", error));
+	}
+	else if (winner_or_looser == 1)
+	{
+		fetch('/secondRound/', {
+			method: 'POST',  // Correction : POST au lieu de GET
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+			},
+			body: JSON.stringify({
+				is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				alert("WAITING PAGE ");
+				if (data.waiting)
+				{
+					let waitingPage =  document.getElementById("waitingPage");
+					waitingPage.classList.add('active');
+				}
+				// block everything and show wainting page
+				console.log("Tournoi avancé :", data.message);
+			} else {
+				alert("Erreur : " + data.error);
+			}
+		})
+		.catch(error => console.error("Erreur :", error));
+	}
 }
 
 
 function lastRound(winner_or_looser) {
-    fetch('/lastRound/', {
-        method: 'POST',  // Correction : POST au lieu de GET
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),  // Sécurité Django
-        },
-        body: JSON.stringify({
-            is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
+
+	if (winner_or_looser === 0)
+	{
+		fetch('/lastRoundLoose/', {
+			method: 'POST',  // Correction : POST au lieu de GET
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+			},
+			body: JSON.stringify({
+				is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				scrollToMainPage();
+				if (data.waiting)
+				{
+					let waitingPage =  document.getElementById("waitingPage");
+					waitingPage.classList.add('active');
+					
+				}
+				// block everything and show wainting page
+				console.log("Tournoi avancé :", data.message);
+			} else {
+				alert("Erreur : " + data.error);
+			}
+		})
+		.catch(error => console.error("Erreur :", error));	
+	}
+	else
+	{
+		fetch('/lastRound/', {
+			method: 'POST',  // Correction : POST au lieu de GET
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+			},
+			body: JSON.stringify({
+				is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				alert("WAITING PAGE ");
+				
+				if (data.waiting)
+				{
+					
+					let waitingPage =  document.getElementById("waitingPage");
+					waitingPage.classList.add('active');
+				}
+				// block everything and show wainting page
+				console.log("Tournoi avancé :", data.message);
+			} else {
+				alert("Erreur : " + data.error);
+			}
+		})
+		.catch(error => console.error("Erreur :", error));
+	}
+}
+
+
+
+
+function finishTournament(winner_or_looser)
+{
+
+	fetch('/finishTournament/', {
+		method: 'POST',  // Correction : POST au lieu de GET
+		headers: {
+			'Content-Type': 'application/json',
+			'X-CSRFToken': getCSRFToken(),  // Sécurité Django
+		},
+		body: JSON.stringify({
+			is_winner: winner_or_looser  // Envoi 1 si gagnant, 0 si perdant
+		})
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.success) {
 			alert("waiting page");
 			if (data.waiting)
 			{
@@ -2030,14 +2119,11 @@ function lastRound(winner_or_looser) {
 				waitingPage.classList.add('active');
 			}
 			// block everything and show wainting page
-            console.log("Tournoi avancé :", data.message);
-        } else {
-            alert("Erreur : " + data.error);
-        }
-    })
-    .catch(error => console.error("Erreur :", error));
+			console.log("Tournoi avancé :", data.message);
+		} else {
+			alert("Erreur : " + data.error);
+		}
+	})
+	.catch(error => console.error("Erreur :", error));	
+
 }
-
-
-
-
