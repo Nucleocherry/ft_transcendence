@@ -45,6 +45,7 @@ urlpatterns = [
     path('get_user_status/', views.get_user_status, name='get_user_status'),
     path('match-history/', views.get_match_history, name='match_history'),
     path('add_match_history/', views.add_match_history, name='add_match_history'),
+    path('connect_match/', views.connect_match, name='connect_match'),
 
     #API PATH
     path('auth/42/', views.redirect_to_42, name='auth_42'),

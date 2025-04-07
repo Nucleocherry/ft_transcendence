@@ -100,7 +100,7 @@
 			</form>
 			<span id="messages" style="color: white;background-color: rgb(255, 0, 0);" ></div>
 			</span>-->
-        <button class="toMainPageButton" onclick="scrollToMainPage()">
+        <button id="toMainPageButton" class="toMainPageButton" onclick="scrollToMainPage()">
             <span class="material-symbols-outlined">keyboard_double_arrow_up</span>
         </button>
 
@@ -109,6 +109,14 @@
             <h2 id="p1-points" style="font-family: 'Poiret One';"></h2>
             <h2 id="p2-points" style="font-family: 'Poiret One';"></h2>
         </div>
+
+		<label for="pet-select">Choose a difficuly:</label>
+		<select name="difficulty" id="ai-difficulty" class="ai-difficulty">
+			<option value="easy">easy</option>
+			<option value="medium">medium</option>
+			<option value="hard">hard</option>
+		</select>
+
 
 
 		<center><div id="GameMenu">
@@ -281,7 +289,7 @@
 						<button id="sendGameButton" 
 							class="sendGameButton" 
 							data-user-id="" 
-							onclick="addFriendRequest()">
+							onclick='ChallengeFriend(document.getElementById("userUsername").innerText); scrollToBottom()'>
 							<p>Jouer</p>
 						</button>
 						<div class="chat_zone">	
@@ -424,7 +432,6 @@
 			
 
 		<button id="BloodButton" class="SettingsSetting_BloodButton" onclick="bloodMode()">BLOOD MODE OFF</button>
-		<button id="basicButton" class="SettingsSetting_Button" onclick="baseMode()">BASIC MODE OFF</button>
 
 		<a class="logout-button" href="{% url 'logout' %}" id="logoutButton"> Logout <span class="material-symbols-outlined icon-smaller">logout</span></a>
 		</div>

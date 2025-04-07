@@ -8,6 +8,7 @@ class WebConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user_id = self.scope['user'].id
         self.group_name = f"user_{self.user_id}"
+        self.opponent_id = None  
         print(f"✅ Connexion WebSocket : Utilisateur {self.user_id} ajouté au groupe {self.group_name}")
         # On met à jour l'état en ligne de l'utilisateur
         await self.update_online_status(True)
@@ -17,7 +18,10 @@ class WebConsumer(AsyncWebsocketConsumer):
 
         # On accepte la connexion WebSocket
         await self.accept()
-
+    async def initialize_opponent(self, event):
+        """Initialize the opponent ID for the WebSocket connection."""
+        self.opponent_id = event["opponent_id"]
+        print(f"Opponent ID initialized: {self.opponent_id}")
     async def receive(self, text_data):
         # Juste pour debugger
         data = json.loads(text_data)
@@ -31,10 +35,27 @@ class WebConsumer(AsyncWebsocketConsumer):
                     "data": data
                 }
             )
-
+    async def opponent_disconnected(self, event):
+        """Send a notification to the client about the opponent's disconnection."""
+        await self.send(text_data=json.dumps({
+            "type": "opponent_disconnected",
+            "message": event.get("message", "Your opponent has disconnected."),
+        }))
     async def disconnect(self, close_code):
         # Quand l'utilisateur se déconnecte, on le retire du groupe et met à jour son statut
         await self.update_online_status(False)
+    # Notify the opponent about the disconnection
+        if self.opponent_id:
+            await self.channel_layer.group_send(
+                f"user_{self.opponent_id}",  # Opponent's group name
+                {
+                    "type": "opponent_disconnected",
+                    "message": "Your opponent has disconnected.",  # Optional message
+                },
+            )
+        else:
+            print("⚠️ Aucuns adversaires connectés pour envoyer la notification.")
+                        
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def update_lists(self, event):

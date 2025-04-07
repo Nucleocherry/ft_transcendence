@@ -46,6 +46,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Fermeture et tentative de reconnexion
     window.mySocket.onclose = function (event) {
+		if (friendtrigger === 1)
+		{
+			lose_game();
+			add_match_history();
+		}
         console.log("⚠️Websocket déconnecté , reconnexion dans 3 secondes...:", event);
         setTimeout(() => {
             window.mySocket = new WebSocket(url); // Reconnexion
@@ -57,13 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		//console.log("📩 WebSocket message reçu:", event.data);
 	
 		const data = JSON.parse(event.data);
-		//console.log("📩 Données reçues:", data);
+		console.log("📩 Données reçues:", data);
 	
 		if (data.type === "update_lists") {
 			//console.log("🔄 Mise à jour de la liste d'amis !");
 			showFriendList();
 			showFriendRequestList();
-			showNotif(data.message)
+			selectUserDisplay(data.user_id);
+			console.log(data.user_id)
+			showNotif(data.message);
 		}
 		else if (data.type === "update_messages") {
 			//console.log("new message recieved");
@@ -154,7 +161,100 @@ document.addEventListener("DOMContentLoaded", () => {
 		{
 			getAllTournaments()
 		}
+		if (data.type === "opponent_disconnected")
+		{
+			win_game();
+			add_match_history();
+			reInitialize()
+		}
 	};
+		/*----------------------------RE-INITIALIZE-GAME-----------------------------*/
+		const canvas =  document.getElementById("TheGame");
+	function reInitialize()
+	{
+		if (in_tournament === 1)
+			{
+				if (tournamentRound === 0)
+				{
+					
+					if (p1.points === 5 && friendtrigger === 1)
+					{
+						alert("deuxieme manche mache wola");
+						tournamentRound++;
+						secondRound(1);	
+
+					}
+					else if (p2.points === 5 && friendtrigger === 1)
+					{
+						in_tournament = 0;
+						tournamentRound = 0;
+						secondRound(0)
+
+					}
+					
+				}
+				else if (tournamentRound === 1)
+				{
+					alert("vive le caca rtoisieme manche");
+					if (p1.points === 5 && friendtrigger === 1)
+					{
+						tournamentRound++;
+						lastRound(1);	
+						
+					}
+					else if (p2.points === 5 && friendtrigger === 1)
+					{
+						in_tournament = 0;
+						tournamentRound = 0;
+						lastRound(0)
+
+					}
+				}
+				else if (tournamentRound === 2)
+				{
+					if (p1.points === 5 && friendtrigger === 1)
+					{
+						alert("vous avez gagne");
+						finishTournament(1);		
+					}
+					else if (p2.points === 5 && friendtrigger === 1)
+					{
+						finishTournament(0);
+					}
+					in_tournament = 0;
+					tournamentRound = 0;
+				}
+			}
+			if (friendtrigger === 1 && in_tournament === 0) {
+				let TheGame = document.getElementById('TheGame');
+			let scoreboard = document.getElementById('scoreboard');
+			let winText = document.getElementById('winText');
+			let winner = document.getElementById('winner');
+
+			
+			TheGame.classList.remove('active');
+			scoreboard.classList.remove('active');
+			winText.innerText = "";
+			console.log("result = ", result);
+			if (result === "win")
+				winText.innerText += "Player one won !";
+			else
+				winText.innerText += "Player two won !";
+			winner.classList.add('active');
+			ball.x = canvas.width / 2;
+			ball.y = canvas.height / 2;
+			p1.y = canvas.height / 2;
+			p2.y = canvas.height / 2;
+			p2.points = 0;
+			p1.points = 0;
+			trigger = 0;
+			aitrigger = 0;
+			friendtrigger = 0;
+			hostname = "       ";
+			user_id = "";
+			}
+		}
+		/*----------------------------RE-INITIALIZE-GAME-----------------------------*/
 	showMatchHistory();
 	showFriendList();
 	showFriendRequestList();
@@ -230,6 +330,10 @@ function returnToPreviousMenu()
 	let joinPage = document.getElementById('joinPage');
 	let createPage = document.getElementById('createPage');
 
+	let mainPageButton = document.getElementById("toMainPageButton");
+			
+	mainPageButton.classList.remove("disabled");
+	returnButton.classList.add('active');
 	if (MenuTrigger === 1)
 	{
 		returnButton.classList.remove('active');
@@ -477,6 +581,14 @@ function activateFriendGame()
 	let	Scoreboard = document.getElementById('scoreboard');
 	let winner = document.getElementById('winner');
 
+	fetch(`/connect_match/?user_id=${user_id}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCSRFToken(),  // Récupère le CSRF token depuis le cookie
+        },
+		body: `user_id=${user_id}`,
+	})
 	friendtrigger = 1;
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
@@ -497,8 +609,6 @@ function handleGameInvite(_data)
 	let friendTitle = document.getElementById('FriendTitle');
 	let returnButton = document.getElementById('ReturnButton');
 	let winner = document.getElementById('winner');
-	let tournament4 = document.getElementById('tournament4');
-	let tournament8 = document.getElementById('tournament8');
 	let tournamentButton = document.getElementById('Tournament');
 
 //	console.log("_data.hostname:", _data.hostname);
@@ -519,8 +629,6 @@ function handleGameInvite(_data)
 			returnButton.classList.remove('active');
 			winner.classList.remove('active');
 			GameInvite.classList.add('active');
-			tournament4.classList.remove('active');
-			tournament8.classList.remove('active');
 			tournamentButton.classList.add('inactive');
 		}
 	})
@@ -571,10 +679,12 @@ function ChallengeFriend(_p2_username)
 	let returnButton = document.getElementById('ReturnButton');
 	let winner = document.getElementById('winner');
 	let cant_play = document.getElementById('cant_play');
+	let GameMenu = document.getElementById('GameMenu');
 
 	winner.classList.remove('active');
 	friendTitle.classList.remove('active');
 	friendMenu[0].classList.remove('active');
+	GameMenu.classList.add('inactive');
 	console.log("_p2_username: ", _p2_username);
 	fetch(`/search_users/?q=${_p2_username}`) // make a global setup
 	.then(response => response.json())
@@ -590,6 +700,7 @@ function ChallengeFriend(_p2_username)
 					cant_play.classList.add('active');
 					p2_username = '';
 					MenuTrigger = 3;
+					returnButton.classList.add('active');
 				}
 				else if (data.users[0].username === _p2_username)
 				{
@@ -896,7 +1007,7 @@ function showSelfStats(wins, losses, rank) {
   let ratio = (wins + losses) > 0 ? (wins / (wins + losses)).toFixed(2) : "N/A";
 
   // Update the Ratio and Rank display
-  document.getElementById("Ratio_self").textContent = `Ratio: ${ratio}`;
+  document.getElementById("Ratio_self").textContent = `Winrate: ${ratio * 100}%`;
   document.getElementById("Rank_self").textContent = `Rank: ${rank}`;
 
   // Get the canvas
@@ -1475,7 +1586,14 @@ document.addEventListener("DOMContentLoaded", function () {
 		const messageText = input.value.trim(); // Récupère le texte et enlève les espaces inutiles
 	
 		if (messageText === "") return; // Empêche l'envoi d'un message vide
-	
+    	// Bloquer les messages de plus de 300 caractères
+		if (messageText.length >= 200) {
+			input.classList.add("limite");  // Add style when limit is reached
+			return;
+		}
+
+		input.classList.remove("limite"); // Remove style when under limit
+		
 		const toUserId = input.getAttribute("data-user-id");
 
 		// Vérifie si l'ID est bien récupéré
@@ -1665,24 +1783,28 @@ function submitColors() {
 	let color1 = document.getElementById('colorPickerA').value;
 	let color2 = document.getElementById('colorPickerB').value;
 
-	updateColor1(color1);
-	updateColor2(color2);
+	updateColor1(color1, color2);
+	
 }
 
 // Fonction pour mettre à jour la couleur 1
-function updateColor1(color) {
+function updateColor1(color, color2) {
     fetch('/update/color_1/', {
         method: "POST",
         headers: {
-			"Content-Type": "application/x-www-form-urlencoded",
-			"X-CSRFToken": getCSRFToken()  // Ajout du token CSRF // 
-			},
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCSRFToken()  // Ajout du token CSRF
+        },
         body: new URLSearchParams({ color_1: color })
     })
     .then(response => response.json())
-    .then(data => console.log(data))
+    .then(data => {
+        console.log(data); // Traiter la réponse
+        updateColor2(color2); // Appeler la fonction pour mettre à jour la couleur 2
+    })
     .catch(error => console.error("Erreur:", error));
 }
+
 
 // Fonction pour mettre à jour la couleur 2
 function updateColor2(color) {
@@ -1744,11 +1866,13 @@ function joinTournament(tournament)
     .then(data => {
         if (data.success)
 		{
-            alert("Tournoi rejoins !");
-
-
 			//ajouter la nouvelle page avec tout les joueur 
             // D'autres actions que tu veux faire après la création
+			let returnButton = document.getElementById('ReturnButton');
+			let mainPageButton = document.getElementById("toMainPageButton");
+			
+			mainPageButton.classList.add("disabled");
+			returnButton.classList.remove('active');
 			getTournamentPlayers_Join(data.tournament_id);
         } else {
             alert("Erreur : " + data.error);
@@ -1798,7 +1922,9 @@ function createTournamentFunction()
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert("Tournoi créé !");
+			let mainPageButton = document.getElementById("toMainPageButton");
+			
+			mainPageButton.classList.add("disabled");
 			getTournamentPlayers_Create(data.tournament_id);
             // D'autres actions que tu veux faire après la création
         } else {

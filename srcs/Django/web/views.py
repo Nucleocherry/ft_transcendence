@@ -816,6 +816,40 @@ def add_match_history(request):
     return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
 
 @login_required
+def opponent_disconnected(user_id):
+    async_to_sync(channel_layer.group_send)(
+        f"user_{user_id}",
+        {
+            "type": "opponent_disconnected",
+            "player_id": user_id,
+        },
+    )
+
+@login_required
+def connect_match(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')  # Get the opponent's user ID from the request
+        user = request.user
+
+        if not user_id:  # Check if the user_id is missing
+            return JsonResponse({"success": False, "message": "Opponent ID is missing."}, status=400)
+
+        # Notify the WebSocket consumer to initialize the opponent ID
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.id}",
+            {
+                "type": "initialize_opponent",
+                "opponent_id": user_id,  # Send the opponent's ID to the WebSocket consumer
+            },
+        )
+
+        return JsonResponse({"success": True, "message": "Match connected successfully."})
+
+    # If the request method is not POST, return an error response
+    return JsonResponse({"success": False, "message": "Invalid request method."}, status=405)
+
+@login_required
 def change_password(request):
     if request.method == 'POST':
         password_given = request.POST.get('password')

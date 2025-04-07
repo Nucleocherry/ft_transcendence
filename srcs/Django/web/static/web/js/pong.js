@@ -10,9 +10,9 @@ let user_id;
 let p1, p2;
 let ball;
 let hostname = "      ";
-let width = 10;
-let height = width * 3;
-let maxBounceAngle = Math.PI / 3;
+let width = 5;
+let height = width * 6;
+let maxBounceAngle = Math.PI / 4;
 let speed = 2;
 let refresh_rate = 10
 let blood_mode = 0;
@@ -20,6 +20,63 @@ let color = "black"
 let skin = "black"
 let in_tournament = 0;
 let tournamentRound = 0;
+let result;
+
+/*---------------------------MATCH-HISTORY--------------------------------------------*/
+function win_game()
+{
+	result = "win";
+	fetch('/increment_victory/', {
+		method: "POST",
+		headers: {
+			"X-CSRFToken": getCSRFToken(),
+			"Content-Type": "application/json"
+		}
+	})
+}
+
+function lose_game()
+{
+	result = "lose";
+	fetch('/increment_losses/', {
+		method: "POST",
+		headers: {
+			"X-CSRFToken": getCSRFToken(),
+			"Content-Type": "application/json"
+		}
+	})
+}
+
+function add_match_history()
+{
+	if (friendtrigger === 1)
+		{
+			fetch('/add_match_history/', {
+				method: "POST",
+				headers: {
+					"X-CSRFToken": getCSRFToken(),
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify({
+					opponent_username: p2_username,
+					result: result,
+					score_player: p1.points,
+					score_opponent: p2.points,
+				})
+			})
+			.then(reponse => reponse.json())
+			.then(data => {
+				if (data.success) {
+					showMatchHistory(); // Now correctly waits for the fetch response before updating the UI
+				}
+			})
+			.catch(error => console.error("Error updating match history:", error));
+		}
+}
+
+/*---------------------------END-MATCH-HISTORY----------------------------------------*/
+
+
 /*------------CLIENT-PLAYER-MOVEMENT----------------------------------------*/
 function move_remote_ball(data)
 {
@@ -200,42 +257,141 @@ document.addEventListener('DOMContentLoaded', () => {
 		if (aitrigger === 1 && ball.x >= canvas.width / 2 && ball.dx > 0 && trigger === 1)
 			aiBot();
 	}
-	/*----------------------------END-KEY-TRACKING---------------*/
-
+	/*----------------------------END-KEY-TRACKING---------------*/	let lastAITargetUpdate = 0;
+	let aiTargetY = null;
+	let aiSpeed = 1;
+	let refresh_ai = 1000;
+	
+	const difficultySelector = document.getElementById("ai-difficulty");
+	
+	difficultySelector.addEventListener("change", function () {
+		const difficulty = this.value;
+	
+		if (difficulty === "easy") {
+			aiSpeed = 1;
+			refresh_ai = 1000;
+		} else if (difficulty === "medium") {
+			aiSpeed = 2;
+			refresh_ai = 1000;
+		} else if (difficulty === "hard") {
+			aiSpeed = 2;
+			refresh_ai = 600;
+		}
+	
+		console.log("AI difficulty set to:", difficulty, "| Speed:", aiSpeed, "| Refresh:", refresh_ai);
+	});
+	
 	function aiBot() {
-		if (ball.y <= (p2.y + height / 2))
-			p2.movePlayer(-(speed));
-		else if (ball.y > (p2.y + height / 2))
-			p2.movePlayer(speed);
+		const now = Date.now();
+	
+		// If it's been more than 1000ms since the last target update
+		if (now - lastAITargetUpdate >= refresh_ai || aiTargetY === null) {
+			lastAITargetUpdate = now;
+	
+			// Set new target Y to center the paddle on the ball
+			aiTargetY = ball.y - height / 2;
+		}
+	
+		// Move towards targetY by at most aiSpeed pixels
+		if (aiTargetY !== null) {
+			if (Math.abs(p2.y - aiTargetY) > aiSpeed) {
+				if (p2.y < aiTargetY) {
+					p2.movePlayer(aiSpeed);
+				} else {
+					p2.movePlayer(-aiSpeed);
+				}
+			} else {
+				// Close enough, snap to position if desired
+				p2.y = aiTargetY;
+			}
+		}
 	}
 	
+
+	  	
 	function reInitialize()
 	{
-		let TheGame = document.getElementById('TheGame');
-		let scoreboard = document.getElementById('scoreboard');
-		let winText = document.getElementById('winText');
-		let winner = document.getElementById('winner');
+		if (in_tournament === 1)
+			{
+				if (tournamentRound === 0)
+				{
+					
+					if (p1.points === 5 && friendtrigger === 1)
+					{
+						alert("deuxieme manche mache wola");
+						tournamentRound++;
+						secondRound(1);	
 
-		
-		TheGame.classList.remove('active');
-		scoreboard.classList.remove('active');
-		winText.innerText = "";
-		if (p1.points === 5)
-			winText.innerText += "Player one won !";
-		else
-			winText.innerText += "Player two won !";
-		winner.classList.add('active');
-		ball.x = canvas.width / 2;
-		ball.y = canvas.height / 2;
-		p1.y = canvas.height / 2;
-		p2.y = canvas.height / 2;
-		p2.points = 0;
-		p1.points = 0;
-		trigger = 0;
-		aitrigger = 0;
-		friendtrigger = 0;
-		hostname = "       ";
-		user_id = "";
+					}
+					else if (p2.points === 5 && friendtrigger === 1)
+					{
+						in_tournament = 0;
+						tournamentRound = 0;
+						secondRound(0)
+
+					}
+					
+				}
+				else if (tournamentRound === 1)
+				{
+					alert("vive le caca rtoisieme manche");
+					if (p1.points === 5 && friendtrigger === 1)
+					{
+						tournamentRound++;
+						lastRound(1);	
+						
+					}
+					else if (p2.points === 5 && friendtrigger === 1)
+					{
+						in_tournament = 0;
+						tournamentRound = 0;
+						lastRound(0)
+
+					}
+				}
+				else if (tournamentRound === 2)
+				{
+					if (p1.points === 5 && friendtrigger === 1)
+					{
+						alert("vous avez gagne");
+						finishTournament(1);		
+					}
+					else if (p2.points === 5 && friendtrigger === 1)
+					{
+						finishTournament(0);
+					}
+					in_tournament = 0;
+					tournamentRound = 0;
+				}
+			}
+			if (friendtrigger === 1 && in_tournament === 0)  {
+			let TheGame = document.getElementById('TheGame');
+			let scoreboard = document.getElementById('scoreboard');
+			let winText = document.getElementById('winText');
+			let winner = document.getElementById('winner');
+
+			
+			TheGame.classList.remove('active');
+			scoreboard.classList.remove('active');
+			winText.innerText = "";
+			console.log("result = ", result);
+			if (result === "win")
+				winText.innerText += "Player one won !";
+			else
+				winText.innerText += "Player two won !";
+			winner.classList.add('active');
+			ball.x = canvas.width / 2;
+			ball.y = canvas.height / 2;
+			p1.y = canvas.height / 2;
+			p2.y = canvas.height / 2;
+			p2.points = 0;
+			p1.points = 0;
+			trigger = 0;
+			aitrigger = 0;
+			friendtrigger = 0;
+			hostname = "       ";
+			user_id = "";
+			}
 	}
 
 	function drawFrame() {
@@ -253,107 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
 	
 		if (p1.points === 5 || p2.points == 5)
 		{
-			let result;
-	
 			if (p1.points === 5 && friendtrigger === 1)
 			{
-				result = "win";
-				fetch('/increment_victory/', {
-					method: "POST",
-					headers: {
-						"X-CSRFToken": getCSRFToken(),
-						"Content-Type": "application/json"
-					}
-				})
+				
+
+				win_game();
 			}
 			if (p2.points === 5 && friendtrigger === 1)
 			{
-				result = "lose"
-				fetch('/increment_losses/', {
-					method: "POST",
-					headers: {
-						"X-CSRFToken": getCSRFToken(),
-						"Content-Type": "application/json"
-					}
-				})
+				lose_game();
 			}
-			if (friendtrigger === 1)
-			{
-				fetch('/add_match_history/', {
-					method: "POST",
-					headers: {
-						"X-CSRFToken": getCSRFToken(),
-						"Content-Type": "application/json"
-					},
-					body: JSON.stringify({
-						opponent_username: p2_username,
-						result: result,
-						score_player: p1.points,
-						score_opponent: p2.points,
-					})
-				})
-				.then(reponse => reponse.json())
-				.then(data => {
-					if (data.success) {
-						showMatchHistory(); // Now correctly waits for the fetch response before updating the UI
-					}
-				})
-				.catch(error => console.error("Error updating match history:", error));
-			}
-			if (in_tournament === 1)
-				{
-					if (tournamentRound === 0)
-					{
-						
-						if (p1.points === 5 && friendtrigger === 1)
-						{
-							alert("deuxieme manche mache wola");
-							tournamentRound++;
-							secondRound(1);	
-
-						}
-						else if (p2.points === 5 && friendtrigger === 1)
-						{
-							in_tournament = 0;
-							tournamentRound = 0;
-							secondRound(0)
-
-						}
-						
-					}
-					else if (tournamentRound === 1)
-					{
-						alert("vive le caca rtoisieme manche");
-						if (p1.points === 5 && friendtrigger === 1)
-						{
-							tournamentRound++;
-							lastRound(1);	
-							
-						}
-						else if (p2.points === 5 && friendtrigger === 1)
-						{
-							in_tournament = 0;
-							tournamentRound = 0;
-							lastRound(0)
-
-						}
-					}
-					else if (tournamentRound === 2)
-					{
-						if (p1.points === 5 && friendtrigger === 1)
-						{
-							alert("vous avez gagne");
-							finishTournament(1);		
-						}
-						else if (p2.points === 5 && friendtrigger === 1)
-						{
-							finishTournament(0);
-						}
-						in_tournament = 0;
-						tournamentRound = 0;
-					}
-				}
-
+			add_match_history();
 			reInitialize();
 		}
 		document.getElementById("p1-points").innerText = p1.points;
@@ -413,16 +479,7 @@ function bloodMode() {
 	console.log("TIME FOR A BLOODY MOON");
 }
 
-let base_mode = 0;
 
-function basicMode() {
-    const basicButton = document.querySelector("#basicButton"); // Sélectionne le bouton
-    if (!basicButton) return; // Empêche une erreur si le bouton n'existe pas
-
-    base_mode = base_mode === 0 ? 1 : 0; // Bascule entre 0 et 1
-
-    basicButton.textContent = base_mode ? "BASE MODE ON" : "BASE MODE OFF";
-}
 /*-----color_picker-----*/
 document.addEventListener("DOMContentLoaded", function () {
     // Sélectionne les color pickers
@@ -437,12 +494,9 @@ document.addEventListener("DOMContentLoaded", function () {
         let colorA = colorPickerA.value;
         let colorB = colorPickerB.value;
 
-		if (base_mode === 1)
-			color = colorA;
-			skin = colorB;
-		if (base_mode != 1)
-			color = "black";
-			skin = "black";
+
+		color = colorA;
+		skin = colorB;
 
 
 
